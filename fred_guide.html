@@ -540,9 +540,52 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 10. KEYBOARD ═══════ -->
-<div class="section" id="keys">
+<!-- ═══════ 10. CORRELATION ═══════ -->
+<div class="section" id="correlation">
   <div class="section-num">10</div>
+  <h2>Reading the correlation grid</h2>
+  <p class="desc">The correlation grid shows how strongly two economic indicators move together. It answers the question: <em>"When one number goes up, does the other tend to go up too?"</em></p>
+
+  <div class="mock">
+    <div class="mock-label">How to read the numbers</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:inline-block;width:36px;height:20px;border-radius:3px;background:#3fb950;text-align:center;line-height:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#0d1117">+1.0</span>
+        <span><strong>Perfect match</strong> — they always move in the same direction</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:inline-block;width:36px;height:20px;border-radius:3px;background:rgba(63,185,80,.4);text-align:center;line-height:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#f0f3f6">+0.5</span>
+        <span><strong>Moderate match</strong> — they often move together but not always</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:inline-block;width:36px;height:20px;border-radius:3px;background:#242a33;text-align:center;line-height:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#6e7a86">0.0</span>
+        <span><strong>No relationship</strong> — they move independently of each other</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:inline-block;width:36px;height:20px;border-radius:3px;background:rgba(248,81,73,.4);text-align:center;line-height:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#f0f3f6">-0.5</span>
+        <span><strong>Moderate opposite</strong> — when one goes up, the other often goes down</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:inline-block;width:36px;height:20px;border-radius:3px;background:#f85149;text-align:center;line-height:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#0d1117">-1.0</span>
+        <span><strong>Perfect opposite</strong> — they always move in opposite directions</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text"><strong>Example:</strong> If Fed Funds and 10Y Yield show <strong>+0.8</strong>, it means when the Fed raises rates, long-term bond yields usually rise too. If Unemployment and GDP show <strong>-0.7</strong>, a growing economy usually means fewer people out of work.</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">👆</span>
+    <div class="callout-text"><strong>Hover over any cell</strong> in the grid to see the full value. Click the <strong>collapse arrow</strong> (▼) to hide or show the grid.</div>
+  </div>
+</div>
+
+<!-- ═══════ 11. KEYBOARD ═══════ -->
+<div class="section" id="keys">
+  <div class="section-num">11</div>
   <h2>Keyboard shortcuts</h2>
   <p class="desc">Power-user moves once you're comfortable.</p>
 

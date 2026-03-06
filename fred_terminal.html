@@ -8,19 +8,17 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a101e;--s1:#111828;--s2:#172033;--s3:#1e2940;
-  --border:#253250;--border2:#2e3d5e;
-  --text:#e8ecf4;--dim:#7a8ba8;--muted:#566880;
-  --accent:#6d7cfa;--accent2:#38bdf8;
-  --red:#ef4444;--green:#22c55e;--amber:#f59e0b;
-  --recession:rgba(239,68,68,.06);
+  --bg:#0d1117;--s1:#161b22;--s2:#1c2129;--s3:#242a33;
+  --border:#30363d;--border2:#484f58;
+  --text:#f0f3f6;--dim:#9eaab6;--muted:#6e7a86;
+  --accent:#58a6ff;--accent2:#3fb950;
+  --red:#f85149;--green:#3fb950;--amber:#d29922;
+  --recession:rgba(248,81,73,.06);
 }
 html,body{height:100%;overflow:hidden}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 
-/* Grain */
-body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z-index:9999;
-  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* Grain removed for clarity */
 
 /* ── Ticker Strip ── */
 .ticker{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--s1);
@@ -29,8 +27,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .tick-item{display:flex;align-items:center;gap:8px;padding:0 14px;
   border-right:1px solid var(--border);cursor:pointer;transition:background .15s;
   white-space:nowrap;flex-shrink:0;min-width:140px}
-.tick-item:hover{background:rgba(109,124,250,.06)}
-.tick-item.active{background:rgba(109,124,250,.1)}
+.tick-item:hover{background:rgba(88,166,255,.06)}
+.tick-item.active{background:rgba(88,166,255,.1)}
 .tick-name{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
   letter-spacing:.5px;text-transform:uppercase}
 .tick-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
@@ -64,7 +62,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .sub-charts .panel:first-child{border-right:none}
 
 /* ── Tooltip ── */
-.tt{position:absolute;pointer-events:none;background:rgba(10,15,30,.94);
+.tt{position:absolute;pointer-events:none;background:rgba(13,17,23,.95);
   backdrop-filter:blur(20px);border:1px solid var(--border2);border-radius:8px;
   padding:10px 14px;font-size:11px;z-index:20;min-width:190px;
   box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .08s}
@@ -106,7 +104,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .ev-item{padding:5px 0;font-size:11px;display:flex;gap:6px;align-items:center;
   cursor:pointer;transition:all .15s;color:var(--dim)}
 .ev-item:hover,.ev-item.active{color:var(--text)}
-.ev-item.selected{color:var(--accent);background:rgba(109,124,250,.08);
+.ev-item.selected{color:var(--accent);background:rgba(88,166,255,.08);
   border-radius:4px;padding:5px 6px;margin:0 -6px}
 .ev-icon{font-size:12px;width:18px;text-align:center;flex-shrink:0}
 .ev-text{flex:1}
@@ -137,7 +135,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .ev-impact-tab{font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 7px;
   border-radius:3px;cursor:pointer;color:var(--dim);transition:all .12s;
   border:1px solid transparent}
-.ev-impact-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(109,124,250,.06)}
+.ev-impact-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.06)}
 .ev-impact-tab:hover{color:var(--text)}
 .ev-impact-close{font-size:14px;color:var(--dim);cursor:pointer;margin-left:auto;
   padding:0 2px;line-height:1}
@@ -190,8 +188,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .cb{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);
   background:transparent;color:var(--text);cursor:pointer;display:flex;
   align-items:center;justify-content:center;transition:all .15s;font-size:12px;flex-shrink:0}
-.cb:hover{border-color:var(--accent);background:rgba(109,124,250,.06)}
-.cb.active{border-color:var(--accent);background:rgba(109,124,250,.1)}
+.cb:hover{border-color:var(--accent);background:rgba(88,166,255,.06)}
+.cb.active{border-color:var(--accent);background:rgba(88,166,255,.1)}
 .cb.mode{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
   width:auto;padding:0 10px;letter-spacing:.5px;text-transform:uppercase}
 .scrub{flex:1;-webkit-appearance:none;appearance:none;background:transparent;
@@ -199,12 +197,16 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .scrub::-webkit-slider-runnable-track{height:3px;background:var(--border);border-radius:2px}
 .scrub::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
   border-radius:50%;background:var(--accent);margin-top:-4.5px;
-  box-shadow:0 0 8px rgba(109,124,250,.3)}
+  box-shadow:0 0 8px rgba(88,166,255,.3)}
 .scrub::-moz-range-track{height:3px;background:var(--border);border-radius:2px}
 .scrub::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
   background:var(--accent);border:none}
 .ctrl-date{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
   color:var(--text);min-width:78px;text-align:right;flex-shrink:0}
+.ev-elapsed{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);
+  padding:3px 8px;border-radius:3px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.2);
+  flex-shrink:0;display:none;white-space:nowrap}
+.ev-elapsed.show{display:block}
 .ctrl-speed{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
   cursor:pointer;user-select:none;min-width:26px;text-align:center;flex-shrink:0}
 .ctrl-speed:hover{color:var(--accent)}
@@ -217,7 +219,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
 .guide-link{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);
   text-decoration:none;padding:4px 8px;border-radius:4px;border:1px solid var(--border);
   transition:all .15s;flex-shrink:0;display:flex;align-items:center;gap:4px}
-.guide-link:hover{color:var(--accent);border-color:var(--accent);background:rgba(109,124,250,.06)}
+.guide-link:hover{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.06)}
+.version{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);
+  letter-spacing:.5px;flex-shrink:0;user-select:none}
 
 /* Tooltip styling */
 [title]{position:relative}
@@ -276,9 +280,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.018;z
     <input type="range" class="scrub" id="scrubber" min="0" max="791" value="791" title="Drag to scrub through time">
     <div class="ctrl-speed" id="speedBtn" data-tip="Click to change playback speed">1&times;</div>
     <div class="ctrl-date" id="dateLabel" data-tip="Current date in the timeline">Dec 2025</div>
+    <div class="ev-elapsed" id="evElapsed"></div>
     <button class="cb mode" id="normBtn" data-tip="Normalize: compare all lines on the same scale (N)">NORM</button>
     <button class="cb mode" id="eraBtn" data-tip="Browse historical eras with descriptions (E)">ERAS</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
+    <span class="version">v1.01</span>
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
       <span class="kbd">N</span><span class="kbd">E</span>
@@ -625,7 +631,7 @@ function buildCorrelation(){
       const r=corr(slices[ki],slices[kj]);
       const abs=Math.abs(r);
       if(i===j){
-        c.style.background='rgba(109,124,250,.12)';
+        c.style.background='rgba(88,166,255,.12)';
         c.textContent='—';
         c.style.color='var(--muted)';
       } else {
@@ -812,15 +818,15 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
         const zoneEnd=Math.min(idx,i+impactMonths);
         const x1=xFor(zoneStart), x2=xFor(zoneEnd);
         const grad=cx.createLinearGradient(x1,0,x2,0);
-        grad.addColorStop(0,'rgba(109,124,250,0)');
-        grad.addColorStop(0.3,'rgba(109,124,250,.08)');
-        grad.addColorStop(0.5,'rgba(109,124,250,.12)');
-        grad.addColorStop(0.7,'rgba(109,124,250,.08)');
-        grad.addColorStop(1,'rgba(109,124,250,0)');
+        grad.addColorStop(0,'rgba(88,166,255,0)');
+        grad.addColorStop(0.3,'rgba(88,166,255,.08)');
+        grad.addColorStop(0.5,'rgba(88,166,255,.12)');
+        grad.addColorStop(0.7,'rgba(88,166,255,.08)');
+        grad.addColorStop(1,'rgba(88,166,255,0)');
         cx.fillStyle=grad;
         cx.fillRect(x1,P.t,x2-x1,ph);
         // Zone boundary lines
-        cx.strokeStyle='rgba(109,124,250,.15)';
+        cx.strokeStyle='rgba(88,166,255,.15)';
         cx.lineWidth=1;cx.setLineDash([3,4]);
         cx.beginPath();cx.moveTo(x1,P.t);cx.lineTo(x1,P.t+ph);cx.stroke();
         cx.beginPath();cx.moveTo(x2,P.t);cx.lineTo(x2,P.t+ph);cx.stroke();
@@ -828,7 +834,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       }
 
       // Event marker line
-      cx.strokeStyle=isSelected?'rgba(109,124,250,.5)':'rgba(109,124,250,.18)';
+      cx.strokeStyle=isSelected?'rgba(88,166,255,.5)':'rgba(88,166,255,.18)';
       cx.lineWidth=isSelected?1.5:1;
       cx.setLineDash(isSelected?[]:[2,3]);
       cx.beginPath();cx.moveTo(x,P.t);cx.lineTo(x,P.t+ph);cx.stroke();
@@ -838,7 +844,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       if(isSelected){
         cx.save();
         cx.font='bold 9px "JetBrains Mono",monospace';
-        cx.fillStyle='rgba(109,124,250,.7)';
+        cx.fillStyle='rgba(88,166,255,.7)';
         cx.textAlign='center';
         cx.fillText(ev.icon+' '+ev.label,x,P.t+ph-6);
         cx.restore();
@@ -918,6 +924,25 @@ function updateUI(){
   const m=D.months[idx];
   dateLabel.textContent=MN[m.month-1]+' '+m.year;
   scrubber.value=idx;
+
+  // Elapsed time since selected event
+  const elEl=$('evElapsed');
+  if(selectedEvent>=0){
+    const ev=D.events[selectedEvent];
+    const evIdx2=D.months.findIndex(mo=>mo.year===ev.y&&mo.month===ev.m);
+    if(evIdx2>=0){
+      const diff=idx-evIdx2;
+      if(diff>=0){
+        const yrs=Math.floor(diff/12), mos=diff%12;
+        elEl.textContent=yrs>0? '+'+yrs+'y '+mos+'mo since event' : '+'+diff+'mo since event';
+      } else {
+        const absDiff=Math.abs(diff);
+        const yrs=Math.floor(absDiff/12), mos=absDiff%12;
+        elEl.textContent=yrs>0? '-'+yrs+'y '+mos+'mo before event' : '-'+absDiff+'mo before event';
+      }
+      elEl.classList.add('show');
+    } else { elEl.classList.remove('show'); }
+  } else { elEl.classList.remove('show'); }
 
   // Stats
   KEYS.forEach(k=>{
