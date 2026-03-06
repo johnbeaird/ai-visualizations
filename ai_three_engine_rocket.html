@@ -1,0 +1,117 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>AI Acceleration: The Three Engine Rocket</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+body{
+font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+background:#0A1628;
+color:white;
+margin:0;
+padding:40px;
+}
+h1{margin-bottom:6px}
+.sub{opacity:.8;margin-bottom:30px}
+.card{
+background:rgba(255,255,255,.05);
+padding:20px;
+border-radius:14px;
+max-width:1000px;
+}
+#chart{
+height:450px;
+}
+.engine-label{
+font-size:14px;
+opacity:.85;
+}
+</style>
+</head>
+<body>
+
+<h1>The AI Acceleration Rocket</h1>
+<div class="sub">AI capability is not driven by Moore’s Law alone. Three engines amplify each other.</div>
+
+<div class="card">
+<div id="chart"></div>
+<input id="year" type="range" min="2005" max="2026" step="1" value="2012" style="width:100%"/>
+</div>
+
+<script>
+
+const data = [];
+
+for(let y=2005;y<=2026;y++){
+let moore = Math.pow(2,(y-2012)/2)
+let accel = y<2012?1:Math.pow(1.35,y-2012)
+let algo = y<2012?1:Math.pow(1.25,y-2012)
+data.push({
+year:y,
+moore:moore,
+accel:accel,
+algo:algo,
+total:moore*accel*algo
+})
+}
+
+const w=900,h=400;
+const svg=d3.select("#chart").append("svg")
+.attr("viewBox","0 0 "+w+" "+h)
+
+const scale=d3.scaleLinear()
+.domain([0,Math.max(...data.map(d=>d.total))*1.2])
+.range([0,w-200])
+
+function draw(year){
+
+const d=data.find(x=>x.year==year)
+
+svg.selectAll("*").remove()
+
+const engines=[
+{name:"Moore's Law",value:d.moore},
+{name:"Accelerated Compute (GPU/TPU)",value:d.accel},
+{name:"Algorithmic Efficiency",value:d.algo},
+{name:"Resulting AI Capability",value:d.total}
+]
+
+svg.selectAll("rect")
+.data(engines)
+.enter()
+.append("rect")
+.attr("x",200)
+.attr("y",(d,i)=>i*80+40)
+.attr("height",40)
+.attr("width",d=>scale(d.value))
+
+svg.selectAll("text.label")
+.data(engines)
+.enter()
+.append("text")
+.attr("class","engine-label")
+.attr("x",10)
+.attr("y",(d,i)=>i*80+65)
+.text(d=>d.name)
+
+svg.selectAll("text.value")
+.data(engines)
+.enter()
+.append("text")
+.attr("x",d=>200+scale(d.value)+10)
+.attr("y",(d,i)=>i*80+65)
+.text(d=>d.value.toFixed(1)+"x")
+
+}
+
+draw(2012)
+
+d3.select("#year").on("input",e=>{
+draw(e.target.value)
+})
+
+</script>
+</body>
+</html>

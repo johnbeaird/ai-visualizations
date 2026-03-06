@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moore's Law vs AI: The Kitchen Metaphor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;600;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080a0f; --card: #111827; --accent: #818cf8; --ai-pink: #f472b6;
+  --moore-blue: #3b82f6; --text: #f3f4f6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+  line-height: 1.5; padding: 20px;
+}
+
+.wrapper { max-width: 900px; margin: 0 auto; }
+
+header { margin-bottom: 40px; }
+h1 { font-size: 3rem; font-weight: 900; letter-spacing: -0.05em; background: linear-gradient(to right, var(--moore-blue), var(--ai-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+p.subtitle { color: #9ca3af; font-size: 1.1rem; max-width: 600px; }
+
+.dashboard {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;
+}
+.metric {
+  background: var(--card); border: 1px solid #1f2937; padding: 24px; border-radius: 20px;
+  position: relative; overflow: hidden;
+}
+.metric h3 { font-size: 0.8rem; text-transform: uppercase; color: #9ca3af; margin-bottom: 10px; }
+.metric .val { font-family: 'Space Mono', monospace; font-size: 2rem; font-weight: 700; }
+.metric .desc { font-size: 0.85rem; color: #6b7280; margin-top: 5px; }
+
+/* The Metaphor Card */
+.metaphor-box {
+  background: linear-gradient(135deg, #1e1b4b 0%, #000 100%);
+  padding: 30px; border-radius: 24px; border: 1px solid var(--accent);
+  margin-bottom: 30px; display: flex; align-items: center; gap: 30px;
+}
+.icon-box { font-size: 4rem; }
+
+canvas { 
+  width: 100%; height: 450px; background: #000; border-radius: 20px; 
+  border: 1px solid #1f2937; margin-bottom: 20px;
+}
+
+.controls {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.slider-wrap { width: 100%; display: flex; align-items: center; gap: 20px; }
+input[type=range] { flex: 1; accent-color: var(--ai-pink); cursor: ew-resize; }
+.year-pill { background: var(--accent); color: #fff; padding: 4px 16px; border-radius: 50px; font-family: 'Space Mono', monospace; font-weight: 700; }
+
+.toggle-btn {
+  background: #1f2937; color: #fff; border: none; padding: 10px 24px; 
+  border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.2s;
+}
+.toggle-btn:hover { background: #374151; transform: scale(1.02); }
+
+@media (max-width: 600px) { .dashboard { grid-template-columns: 1fr; } .metaphor-box { flex-direction: column; text-align: center; } }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <header>
+    <h1>The Compute Crash</h1>
+    <p class="subtitle">Hardware is fast, but AI scaling is a rocket ship leaving the atmosphere. Here is the gap between what we <strong>built</strong> and what we <strong>need</strong>.</p>
+  </header>
+
+  <div class="metaphor-box">
+    <div class="icon-box" id="mEmoji">🍕</div>
+    <div>
+      <h2 id="mTitle">The "Kitchen" Logic</h2>
+      <p id="mDesc">In 2012, we were baking one pizza. By 2026, the world is ordering enough pizza to cover the surface of the Moon.</p>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <div class="metric">
+      <h3>Hardware Power (Ovens)</h3>
+      <div class="val" id="ovens">1</div>
+      <div class="desc">Transistor Density Growth</div>
+    </div>
+    <div class="metric">
+      <h3>AI Appetite (Orders)</h3>
+      <div class="val" id="orders">1</div>
+      <div class="desc">Compute used for training</div>
+    </div>
+  </div>
+
+  <canvas id="mainChart"></canvas>
+
+  <div class="controls">
+    <div class="slider-wrap">
+      <span class="year-pill" id="yearTag">2012</span>
+      <input type="range" id="yearSlider" min="2012" max="2026" step="0.1" value="2012">
+      <span style="font-size: 0.8rem; color: #4b5563;">2026</span>
+    </div>
+    <button class="toggle-btn" id="modeBtn">Switch to Technical Mode (FLOPs)</button>
+  </div>
+</div>
+
+<script>
+// Data points based on scaling laws
+const YEARS = [2012, 2014, 2016, 2018, 2020, 2022, 2024, 2026];
+// Moore's Law: Doubles every 2 years
+const mooreData = YEARS.map(y => Math.pow(2, (y - 2012) / 2));
+// AI Compute: Doubles every 6 months
+const aiData = YEARS.map(y => Math.pow(2, (y - 2012) / 0.5));
+
+const canvas = document.getElementById('mainChart');
+const ctx = canvas.getContext('2d');
+let currentYear = 2012;
+let isMetaphor = true;
+
+function updateUI() {
+  const t = (currentYear - 2012) / 14; // normalized 0-1
+  const mVal = Math.pow(2, (currentYear - 2012) / 2);
+  const aVal = Math.pow(2, (currentYear - 2012) / 0.5);
+
+  document.getElementById('yearTag').textContent = Math.floor(currentYear);
+  
+  if (isMetaphor) {
+    document.getElementById('ovens').textContent = Math.round(mVal) + " Ovens";
+    document.getElementById('orders').textContent = formatBig(Math.round(aVal)) + " Pizzas";
+    updateMetaphor(currentYear);
+  } else {
+    document.getElementById('ovens').textContent = mVal.toFixed(1) + "x";
+    document.getElementById('orders').textContent = formatBig(aVal) + "x";
+  }
+
+  drawChart();
+}
+
+function updateMetaphor(year) {
+  const el = {
+    emoji: document.getElementById('mEmoji'),
+    title: document.getElementById('mTitle'),
+    desc: document.getElementById('mDesc')
+  };
+
+  if (year < 2014) {
+    el.emoji.textContent = "🍕";
+    el.title.textContent = "A Neighborhood Party";
+    el.desc.textContent = "Hardware is keeping up. We're baking for a few friends (AlexNet).";
+  } else if (year < 2019) {
+    el.emoji.textContent = "🏢";
+    el.title.textContent = "The Pizza Factory";
+    el.desc.textContent = "The oven isn't enough. We're building whole factories just to keep up (AlphaGo).";
+  } else if (year < 2023) {
+    el.emoji.textContent = "🚀";
+    el.title.textContent = "The Global Logistics Crisis";
+    el.desc.textContent = "Hardware doubling every 2 years is a joke compared to this. We are using massive GPU clusters (GPT-4).";
+  } else {
+    el.emoji.textContent = "🪐";
+    el.title.textContent = "Intergalactic Hunger";
+    el.desc.textContent = "In 2026, we've exceeded 'normal' progress. The compute used for Gemini 3 is basically magic.";
+  }
+}
+
+function formatBig(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + "B";
+  if (n >= 1e6) return (n/1e6).toFixed(1) + "M";
+  if (n >= 1000) return (n/1000).toFixed(1) + "K";
+  return n;
+}
+
+function drawChart() {
+  const w = canvas.width = canvas.offsetWidth * 2;
+  const h = canvas.height = canvas.offsetHeight * 2;
+  ctx.scale(2,2);
+  const dw = w/2; const dh = h/2;
+
+  ctx.clearRect(0,0,dw,dh);
+
+  // Draw background lines
+  ctx.strokeStyle = '#1f2937';
+  ctx.lineWidth = 1;
+  for(let i=1; i<5; i++) {
+    const y = (dh/5) * i;
+    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(dw-40, y); ctx.stroke();
+  }
+
+  const getX = (y) => 40 + ((y-2012)/14) * (dw-80);
+  const getY = (v) => {
+    // Log scale for visibility
+    const logV = Math.log10(v);
+    const maxLog = 9; // 1 Billion x
+    return (dh - 40) - (logV / maxLog) * (dh - 80);
+  };
+
+  // Draw Moore Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 4;
+  for(let y=2012; y<=currentYear; y+=0.1) {
+    const val = Math.pow(2, (y-2012)/2);
+    ctx.lineTo(getX(y), getY(val));
+  }
+  ctx.stroke();
+
+  // Draw AI Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#f472b6';
+  ctx.lineWidth = 6;
+  ctx.shadowBlur = 15; ctx.shadowColor = '#f472b6';
+  for(let y=2012; y<=currentYear; y+=0.1) {
+    const val = Math.pow(2, (y-2012)/0.5);
+    ctx.lineTo(getX(y), getY(val));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+document.getElementById('yearSlider').addEventListener('input', (e) => {
+  currentYear = parseFloat(e.target.value);
+  updateUI();
+});
+
+document.getElementById('modeBtn').addEventListener('click', (e) => {
+  isMetaphor = !isMetaphor;
+  e.target.textContent = isMetaphor ? "Switch to Technical Mode (FLOPs)" : "Switch to Metaphor Mode (Pizza)";
+  updateUI();
+});
+
+window.addEventListener('resize', drawChart);
+updateUI();
+</script>
+</body>
+</html>
