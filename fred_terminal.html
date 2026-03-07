@@ -273,13 +273,18 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
   border:1px solid var(--border2);color:var(--dim);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   font-size:10px;font-family:'JetBrains Mono',monospace;
-  transition:all .25s ease;box-shadow:0 2px 8px rgba(0,0,0,.3);padding:0;
-  opacity:.6}
+  transition:all .35s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 8px rgba(0,0,0,.3);padding:0;
+  opacity:.5}
 .panel-toggle:hover{color:var(--accent);border-color:var(--accent);opacity:1;
   box-shadow:0 0 16px rgba(88,166,255,.25),0 2px 8px rgba(0,0,0,.3)}
 .panel-toggle:active{transform:scale(.92)!important}
 .panel-toggle.collapsed{opacity:1;color:var(--accent);border-color:rgba(88,166,255,.4);
   animation:togglePulse 2.5s ease-in-out infinite}
+.panel-toggle.nearby{opacity:1;transform:scale(1.25);
+  box-shadow:0 0 24px rgba(88,166,255,.5),0 0 60px rgba(88,166,255,.15),0 2px 8px rgba(0,0,0,.4);
+  border-color:var(--accent);color:var(--accent)}
+.panel-toggle.collapsed.nearby{animation:none;transform:scale(1.4);
+  box-shadow:0 0 30px rgba(88,166,255,.6),0 0 80px rgba(88,166,255,.2),0 2px 8px rgba(0,0,0,.4)}
 @keyframes togglePulse{
   0%{box-shadow:0 0 4px rgba(88,166,255,.15),0 2px 8px rgba(0,0,0,.3)}
   50%{box-shadow:0 0 18px rgba(88,166,255,.4),0 2px 8px rgba(0,0,0,.3)}
@@ -294,6 +299,9 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
 .toggle-ticker{border-radius:0 0 6px 6px}
 .toggle-sub{border-radius:6px 6px 0 0}
 .toggle-controls{border-radius:6px 6px 0 0}
+/* Bigger when collapsed so users can find them */
+.panel-toggle.collapsed.toggle-sub,.panel-toggle.collapsed.toggle-controls{
+  height:20px;width:56px;font-size:12px}
 @media(max-width:900px){.toggle-overlay{display:none}}
 
 /* ── Birthday Mode ── */
@@ -642,21 +650,26 @@ function updateTogglePositions(){
   const rightEdge=panelState.rightBar?side.getBoundingClientRect().left:lR.right;
   rt.style.left=(rightEdge-16)+'px';
   rt.style.top=(lR.top+lR.height/2-20)+'px';
-  // Sub-charts toggle: centered at top edge of sub-charts area
+  // Sub-charts and Controls toggles — anchor from bottom of viewport when collapsed
   const sR=subW.getBoundingClientRect();
-  const st=document.getElementById('togSub');
-  st.style.left=(sR.left+sR.width/2-20)+'px';
-  // Controls toggle: centered at top edge of controls
   const cR=ctrl.getBoundingClientRect();
+  const st=document.getElementById('togSub');
   const ct=document.getElementById('togControls');
-  ct.style.left=(cR.left+cR.width/2-20)+'px';
-  // Stack bottom toggles so they never overlap or go off-screen
-  const ctrlTop=panelState.controls?cR.top-1:cR.top;
-  ct.style.top=Math.min(ctrlTop, window.innerHeight-16)+'px';
-  const ctrlBtnTop=parseFloat(ct.style.top);
-  const subTop=panelState.subCharts?sR.top-1:sR.top;
-  // If sub toggle would overlap or be below controls toggle, stack it above
-  st.style.top=Math.min(subTop, ctrlBtnTop-18)+'px';
+  const mainR=document.getElementById('mainPanel').getBoundingClientRect();
+  const centerX=mainR.left+mainR.width/2;
+  st.style.left=(centerX-28)+'px';
+  ct.style.left=(centerX-28)+'px';
+  if(panelState.controls){
+    ct.style.top=(cR.top-1)+'px';
+  } else {
+    ct.style.top=(window.innerHeight-24)+'px';
+  }
+  if(panelState.subCharts){
+    st.style.top=(sR.top-1)+'px';
+  } else {
+    const ctTop=parseFloat(ct.style.top);
+    st.style.top=(ctTop-24)+'px';
+  }
 }
 function restorePanelState(){
   try{
@@ -666,6 +679,25 @@ function restorePanelState(){
     });}
   }catch(e){}
 }
+
+// Mouse proximity glow for toggle buttons
+(function(){
+  const PROXIMITY=90; // px radius to trigger glow
+  const toggleBtns=document.querySelectorAll('.panel-toggle');
+  document.addEventListener('mousemove',e=>{
+    const mx=e.clientX, my=e.clientY;
+    toggleBtns.forEach(btn=>{
+      const r=btn.getBoundingClientRect();
+      const cx=r.left+r.width/2, cy=r.top+r.height/2;
+      const dist=Math.sqrt((mx-cx)**2+(my-cy)**2);
+      btn.classList.toggle('nearby',dist<PROXIMITY);
+    });
+  });
+  // Clear on mouse leave window
+  document.addEventListener('mouseleave',()=>{
+    toggleBtns.forEach(btn=>btn.classList.remove('nearby'));
+  });
+})();
 
 // ════════════════════════════════════════════════════════
 // DOM REFS
