@@ -164,10 +164,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .corr-label{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--dim);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px;height:16px;
   display:flex;align-items:center}
-.corr-toggle{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);
+.sec-toggle{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);
   cursor:pointer;margin-left:auto;padding:2px 6px;border-radius:3px;border:1px solid var(--border);
   transition:all .15s}
-.corr-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.sec-toggle:hover{color:var(--accent);border-color:var(--accent)}
 
 /* Era overlay */
 .era-overlay{position:absolute;inset:0;background:rgba(5,8,16,.88);
@@ -248,6 +248,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
   transform:translateX(-50%);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Outfit',sans-serif;
   background:rgba(10,16,30,.95);color:var(--text);border:1px solid var(--border2);
   white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.left-bar [data-tip]:hover::after{left:0;transform:none;max-width:200px;white-space:normal}
 
 /* ── Collapse System ── */
 body.ticker-collapsed{--ticker-h:0px}
@@ -410,40 +411,44 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <div class="side-sec invest-sec" id="investSection" style="display:none">
       <div class="side-label" data-tip="Hypothetical growth of your investment over time">
         Investment Sim
+        <span class="sec-toggle" id="investToggle" data-tip="Show/hide investment details">&#9660;</span>
         <span class="invest-close" id="investClose">&times;</span>
       </div>
-      <div class="invest-type-tabs">
-        <div class="invest-type-tab active" id="investTabLump">Lump Sum</div>
-        <div class="invest-type-tab" id="investTabRecurring">Recurring</div>
+      <div id="investBody">
+        <div class="invest-type-tabs">
+          <div class="invest-type-tab active" id="investTabLump">Lump Sum</div>
+          <div class="invest-type-tab" id="investTabRecurring">Recurring</div>
+        </div>
+        <div class="invest-start">
+          <span class="invest-from-label">From:</span>
+          <select id="investMonth" class="invest-date-select"></select>
+          <select id="investYear" class="invest-date-select"></select>
+        </div>
+        <div id="investFromBday" style="display:none">
+          <span class="invest-set-btn" id="investSetBday">&#127874; From Birth</span>
+        </div>
+        <div class="invest-amount-row">
+          <span class="invest-amount-label">$</span>
+          <input type="number" class="invest-amount-input" id="investAmount" value="10000" min="1" step="1000">
+          <span class="invest-amount-label" id="investAmountSuffix">invested</span>
+        </div>
+        <div class="invest-interval-row" id="investIntervalRow">
+          <span class="invest-interval-label">Every</span>
+          <input type="number" class="invest-interval-input" id="investInterval" value="12" min="1" max="120" step="1">
+          <span class="invest-interval-label">months</span>
+        </div>
+        <div class="invest-total-row" id="investTotalRow"></div>
+        <div id="investRows"></div>
+        <div class="invest-note">Simplified model. Bonds: reinvest at yield. Cash: 65% of fed funds.</div>
       </div>
-      <div class="invest-start">
-        <span class="invest-from-label">From:</span>
-        <select id="investMonth" class="invest-date-select"></select>
-        <select id="investYear" class="invest-date-select"></select>
-      </div>
-      <div id="investFromBday" style="display:none">
-        <span class="invest-set-btn" id="investSetBday">&#127874; From Birth</span>
-      </div>
-      <div class="invest-amount-row">
-        <span class="invest-amount-label">$</span>
-        <input type="number" class="invest-amount-input" id="investAmount" value="10000" min="1" step="1000">
-        <span class="invest-amount-label" id="investAmountSuffix">invested</span>
-      </div>
-      <div class="invest-interval-row" id="investIntervalRow">
-        <span class="invest-interval-label">Every</span>
-        <input type="number" class="invest-interval-input" id="investInterval" value="12" min="1" max="120" step="1">
-        <span class="invest-interval-label">months</span>
-      </div>
-      <div class="invest-total-row" id="investTotalRow"></div>
-      <div id="investRows"></div>
-      <div class="invest-note">Simplified model. Bonds: reinvest at yield. Cash: 65% of fed funds.</div>
     </div>
     <div class="side-sec" id="corrSection">
-      <div class="side-label">Correlation <span class="badge">60mo</span> <span class="corr-toggle" id="corrToggle" data-tip="Show/hide correlation grid">&#9660;</span></div>
+      <div class="side-label">Correlation <span class="badge">60mo</span> <span class="sec-toggle" id="corrToggle" data-tip="Show/hide correlation grid">&#9660;</span></div>
       <div id="corrGrid"></div>
     </div>
     <div class="side-sec">
-      <div class="side-label" data-tip="Click any event to jump there and see its impact">Key Events</div>
+      <div class="side-label" data-tip="Click any event to jump there and see its impact">Key Events <span class="sec-toggle" id="eventsToggle" data-tip="Show/hide event list">&#9660;</span></div>
+      <div id="eventsBody">
       <div id="eventList"></div>
       <div class="ev-impact" id="evImpact">
         <div class="ev-impact-title">
@@ -458,6 +463,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
           <div class="ev-impact-tab" data-months="12">12mo</div>
         </div>
         <div id="evImpactRows"></div>
+      </div>
       </div>
     </div>
   </div>
@@ -1181,12 +1187,22 @@ $('evImpactClose').addEventListener('click',()=>{
   updateUI();
 });
 
-// Correlation matrix
-let corrCollapsed=false;
+// Section collapse toggles
+let corrCollapsed=false, investCollapsed=false, eventsCollapsed=false;
 $('corrToggle').addEventListener('click',()=>{
   corrCollapsed=!corrCollapsed;
   $('corrGrid').style.display=corrCollapsed?'none':'grid';
   $('corrToggle').innerHTML=corrCollapsed?'&#9654;':'&#9660;';
+});
+$('investToggle').addEventListener('click',()=>{
+  investCollapsed=!investCollapsed;
+  $('investBody').style.display=investCollapsed?'none':'';
+  $('investToggle').innerHTML=investCollapsed?'&#9654;':'&#9660;';
+});
+$('eventsToggle').addEventListener('click',()=>{
+  eventsCollapsed=!eventsCollapsed;
+  $('eventsBody').style.display=eventsCollapsed?'none':'';
+  $('eventsToggle').innerHTML=eventsCollapsed?'&#9654;':'&#9660;';
 });
 function buildCorrelation(){
   const grid=$('corrGrid');
