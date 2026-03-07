@@ -349,6 +349,45 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
 .invest-ret.down{color:var(--red);background:rgba(248,81,73,.08)}
 .invest-best{border-left:2px solid var(--accent2);padding-left:4px}
 .invest-note{font-size:8px;color:var(--muted);margin-top:6px;font-style:italic}
+
+/* ── Commentary Box ── */
+.commentary-box{position:absolute;bottom:36px;left:60px;max-width:380px;
+  background:rgba(13,17,23,.92);backdrop-filter:blur(12px);
+  border:1px solid var(--border2);border-radius:8px;
+  padding:10px 14px;z-index:15;pointer-events:none;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .4s ease,transform .4s ease}
+.commentary-box.show{opacity:1;transform:translateY(0)}
+.commentary-box.fade-out{opacity:0;transform:translateY(-4px)}
+.commentary-icon{font-size:14px;margin-right:6px;vertical-align:middle}
+.commentary-text{font-size:11px;line-height:1.5;color:var(--text);opacity:.9}
+.commentary-meta{font-family:'JetBrains Mono',monospace;font-size:8px;
+  color:var(--muted);margin-top:4px;letter-spacing:.5px;text-transform:uppercase}
+@media(max-width:900px){.commentary-box{left:12px;right:12px;max-width:none;bottom:8px}}
+
+/* ── Investment Enhancements ── */
+.invest-type-tabs{display:flex;gap:2px;margin-bottom:6px}
+.invest-type-tab{font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 8px;
+  border-radius:3px;cursor:pointer;color:var(--dim);transition:all .12s;
+  border:1px solid var(--border);flex:1;text-align:center}
+.invest-type-tab.active{color:var(--accent);border-color:var(--accent);
+  background:rgba(88,166,255,.06)}
+.invest-type-tab:hover{color:var(--text)}
+.invest-interval-row{display:flex;align-items:center;gap:4px;margin-bottom:6px;display:none}
+.invest-interval-row.show{display:flex}
+.invest-interval-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}
+.invest-interval-input{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  background:var(--s1);color:var(--accent);border:1px solid var(--border);border-radius:4px;
+  padding:3px 6px;width:40px;text-align:right}
+.invest-interval-input:focus{outline:none;border-color:var(--accent)}
+.invest-total-row{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);
+  margin-bottom:6px;padding:4px 6px;background:var(--s2);border-radius:3px;display:none}
+.invest-total-row.show{display:block}
+.invest-total-highlight{color:var(--accent2);font-weight:600}
+.invest-date-select{font-family:'JetBrains Mono',monospace;font-size:10px;
+  background:var(--s1);color:var(--text);border:1px solid var(--border);
+  border-radius:4px;padding:3px 4px;cursor:pointer;flex:1}
+.invest-date-select:focus{outline:none;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -373,10 +412,14 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
         Investment Sim
         <span class="invest-close" id="investClose">&times;</span>
       </div>
+      <div class="invest-type-tabs">
+        <div class="invest-type-tab active" id="investTabLump">Lump Sum</div>
+        <div class="invest-type-tab" id="investTabRecurring">Recurring</div>
+      </div>
       <div class="invest-start">
         <span class="invest-from-label">From:</span>
-        <span class="invest-from-date" id="investFromDate">Jan 1960</span>
-        <span class="invest-set-btn" id="investSetNow" data-tip="Set start to current date">Set</span>
+        <select id="investMonth" class="invest-date-select"></select>
+        <select id="investYear" class="invest-date-select"></select>
       </div>
       <div id="investFromBday" style="display:none">
         <span class="invest-set-btn" id="investSetBday">&#127874; From Birth</span>
@@ -384,8 +427,14 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <div class="invest-amount-row">
         <span class="invest-amount-label">$</span>
         <input type="number" class="invest-amount-input" id="investAmount" value="10000" min="1" step="1000">
-        <span class="invest-amount-label">invested</span>
+        <span class="invest-amount-label" id="investAmountSuffix">invested</span>
       </div>
+      <div class="invest-interval-row" id="investIntervalRow">
+        <span class="invest-interval-label">Every</span>
+        <input type="number" class="invest-interval-input" id="investInterval" value="12" min="1" max="120" step="1">
+        <span class="invest-interval-label">months</span>
+      </div>
+      <div class="invest-total-row" id="investTotalRow"></div>
       <div id="investRows"></div>
       <div class="invest-note">Simplified model. Bonds: reinvest at yield. Cash: 65% of fed funds.</div>
     </div>
@@ -419,6 +468,11 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <div class="canvas-wrap" id="mainWrap">
       <canvas id="mainCanvas"></canvas>
       <div class="tt" id="mainTT"></div>
+      <div class="commentary-box" id="commentaryBox">
+        <span class="commentary-icon" id="commentaryIcon"></span>
+        <span class="commentary-text" id="commentaryText"></span>
+        <div class="commentary-meta" id="commentaryMeta"></div>
+      </div>
     </div>
     <!-- Era overlay -->
     <div class="era-overlay" id="eraOverlay">
@@ -462,7 +516,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
     <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v1.03</span>
+    <span class="version">v1.04</span>
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
       <span class="kbd">N</span><span class="kbd">E</span>
@@ -520,6 +574,7 @@ let eraMode = false, eraIdx = 0;
 let selectedEvent = -1, impactMonths = 3;
 let birthdayIdx = -1, birthdayMode = false, bdayPopupOpen = false;
 let investMode = false, investStartIdx = 0, investAmount = 10000;
+let investType = 'lump', investInterval = 12;
 
 // ════════════════════════════════════════════════════════
 // PANEL COLLAPSE SYSTEM
@@ -716,19 +771,75 @@ function formatDollar(v){
   if(v>=1e3)return(v/1e3).toFixed(1)+'K';
   return Math.round(v).toLocaleString();
 }
+// ── DCA (Dollar Cost Averaging) variants ──
+function calcSP500_DCA(startI,endI,amount,interval){
+  let total=0;
+  for(let ci=startI;ci<=endI;ci+=interval){
+    const s=D.series.sp500.data[ci],e=D.series.sp500.data[endI];
+    if(s>0&&e>0){
+      const mo=endI-ci;
+      total+=amount*(e/s)*Math.pow(1.02,mo/12);
+    }else{total+=amount;}
+  }
+  return total;
+}
+function calcBonds_DCA(startI,endI,amount,interval){
+  // Precompute suffix product for O(N)
+  const sp=new Float64Array(endI+2);sp[endI]=1;
+  for(let i=endI-1;i>=startI;i--){
+    sp[i]=sp[i+1]*(1+((D.series.gs10.data[i]||0)/100)/12);
+  }
+  let total=0;
+  for(let ci=startI;ci<=endI;ci+=interval){total+=amount*sp[ci];}
+  return total;
+}
+function calcRealEstate_DCA(startI,endI,amount,interval){
+  let total=0;
+  const e=D.series.case_shiller.data[endI];
+  for(let ci=startI;ci<=endI;ci+=interval){
+    const s=D.series.case_shiller.data[ci];
+    total+=s>0?amount*(e/s):amount;
+  }
+  return total;
+}
+function calcCash_DCA(startI,endI,amount,interval){
+  const sp=new Float64Array(endI+2);sp[endI]=1;
+  for(let i=endI-1;i>=startI;i--){
+    sp[i]=sp[i+1]*(1+(((D.series.fed_funds.data[i]||0)*0.65)/100)/12);
+  }
+  let total=0;
+  for(let ci=startI;ci<=endI;ci+=interval){total+=amount*sp[ci];}
+  return total;
+}
 const INVEST_VEHICLES=[
-  {key:'sp500',name:'S&P 500',color:'#fbbf24',calc:calcSP500},
-  {key:'gs10',name:'10Y Bonds',color:'#22d3ee',calc:calcBonds},
-  {key:'case_shiller',name:'Real Estate',color:'#fb7185',calc:calcRealEstate},
-  {key:'fed_funds',name:'Cash/Savings',color:'#818cf8',calc:calcCash}
+  {key:'sp500',name:'S&P 500',color:'#fbbf24',calc:calcSP500,calcDCA:calcSP500_DCA},
+  {key:'gs10',name:'10Y Bonds',color:'#22d3ee',calc:calcBonds,calcDCA:calcBonds_DCA},
+  {key:'case_shiller',name:'Real Estate',color:'#fb7185',calc:calcRealEstate,calcDCA:calcRealEstate_DCA},
+  {key:'fed_funds',name:'Cash/Savings',color:'#818cf8',calc:calcCash,calcDCA:calcCash_DCA}
 ];
 function updateInvestPanel(){
   if(!investMode)return;
   const rows=$('investRows');rows.innerHTML='';
   const sm=D.months[Math.max(0,investStartIdx)];
-  $('investFromDate').textContent=MN[sm.month-1]+' '+sm.year;
+  // Sync date picker
+  if($('investMonth'))$('investMonth').value=sm.month;
+  if($('investYear'))$('investYear').value=sm.year;
   $('investFromBday').style.display=birthdayMode?'':'none';
   const amt=investAmount;
+  const isRecurring=investType==='recurring';
+  $('investIntervalRow').classList.toggle('show',isRecurring);
+  $('investAmountSuffix').textContent=isRecurring?'each':'invested';
+  // Calculate contributions for recurring
+  let numC=1,totalInvested=amt;
+  if(isRecurring&&idx>investStartIdx){
+    numC=Math.floor((idx-Math.max(0,investStartIdx))/investInterval)+1;
+    totalInvested=amt*numC;
+  }
+  const totalRow=$('investTotalRow');
+  if(isRecurring&&idx>investStartIdx){
+    totalRow.classList.add('show');
+    totalRow.innerHTML='Total: <span class="invest-total-highlight">$'+formatDollar(totalInvested)+'</span> ('+numC+' &times; $'+formatDollar(amt)+')';
+  }else{totalRow.classList.remove('show');}
   if(idx<=investStartIdx||investStartIdx<0){
     INVEST_VEHICLES.forEach(v=>{
       const row=document.createElement('div');row.className='invest-row';
@@ -741,8 +852,9 @@ function updateInvestPanel(){
   }
   let bestVal=0,bestKey='';
   const results=INVEST_VEHICLES.map(v=>{
-    const val=v.calc(Math.max(0,investStartIdx),idx,amt);
-    const ret=((val-amt)/amt)*100;
+    const val=isRecurring?v.calcDCA(Math.max(0,investStartIdx),idx,amt,investInterval)
+      :v.calc(Math.max(0,investStartIdx),idx,amt);
+    const ret=((val-totalInvested)/totalInvested)*100;
     if(val>bestVal){bestVal=val;bestKey=v.key;}
     return{vehicle:v,val,ret};
   });
@@ -756,6 +868,133 @@ function updateInvestPanel(){
       <span class="invest-ret ${cls}">${sign}${r.ret>=1000?formatDollar(r.ret)+'%':r.ret.toFixed(0)+'%'}</span>`;
     rows.appendChild(row);
   });
+}
+
+// ════════════════════════════════════════════════════════
+// LIVE COMMENTARY
+// ════════════════════════════════════════════════════════
+const COMMENTARY=[
+  // Crossing: series1 crosses above/below series2
+  {type:'cross',k1:'fed_funds',k2:'cpi',dir:'above',
+   text:'Fed Funds rises above CPI \u2014 real interest rates turn positive, the Fed is tightening ahead of inflation',
+   icon:'\uD83C\uDFE6',cooldown:24},
+  {type:'cross',k1:'fed_funds',k2:'cpi',dir:'below',
+   text:'Fed Funds drops below CPI \u2014 real interest rates turn negative, monetary policy is effectively loose',
+   icon:'\uD83C\uDFE6',cooldown:24},
+  {type:'cross',k1:'unrate',k2:'cpi',dir:'above',
+   text:'Unemployment surpasses inflation \u2014 labor market weakening faster than prices are rising',
+   icon:'\uD83D\uDCC9',cooldown:24},
+  {type:'cross',k1:'gs10',k2:'fed_funds',dir:'below',
+   text:'Yield curve inverts (10Y below Fed Funds) \u2014 historically one of the most reliable recession signals',
+   icon:'\u26A0\uFE0F',cooldown:36},
+  {type:'cross',k1:'gs10',k2:'fed_funds',dir:'above',
+   text:'Yield curve normalizes (10Y back above Fed Funds) \u2014 inversion ends, but recession may already be underway',
+   icon:'\uD83D\uDCC8',cooldown:36},
+  {type:'cross',k1:'cpi',k2:'gs10',dir:'above',
+   text:'Inflation exceeds 10Y yield \u2014 bond holders are losing purchasing power, real returns negative',
+   icon:'\uD83D\uDCB8',cooldown:24},
+  {type:'cross',k1:'fed_funds',k2:'mortgage30',dir:'above',
+   text:'Fed Funds exceeds mortgage rates \u2014 extremely unusual, signals aggressive tightening',
+   icon:'\uD83C\uDFE0',cooldown:48},
+  // Thresholds
+  {type:'threshold',k:'unrate',dir:'above',val:8,
+   text:'Unemployment breaks 8% \u2014 severe labor market distress, millions out of work',
+   icon:'\uD83D\uDD34',cooldown:60},
+  {type:'threshold',k:'unrate',dir:'below',val:4,
+   text:'Unemployment drops below 4% \u2014 labor market very tight, wage pressures may build',
+   icon:'\uD83D\uDFE2',cooldown:60},
+  {type:'threshold',k:'cpi',dir:'above',val:6,
+   text:'Inflation exceeds 6% \u2014 cost of living accelerating rapidly, eroding purchasing power',
+   icon:'\uD83D\uDD25',cooldown:36},
+  {type:'threshold',k:'cpi',dir:'above',val:10,
+   text:'Inflation hits double digits \u2014 unprecedented price spiral, severe household pressure',
+   icon:'\uD83D\uDD25',cooldown:60},
+  {type:'threshold',k:'cpi',dir:'below',val:0,
+   text:'Deflation \u2014 prices falling, which can signal severe economic weakness',
+   icon:'\u2744\uFE0F',cooldown:36},
+  {type:'threshold',k:'fed_funds',dir:'above',val:10,
+   text:'Fed Funds exceeds 10% \u2014 extremely tight monetary policy, borrowing costs punishing',
+   icon:'\uD83C\uDFE6',cooldown:60},
+  {type:'threshold',k:'fed_funds',dir:'below',val:1,
+   text:'Fed Funds near zero \u2014 emergency monetary policy, the Fed has run out of conventional room',
+   icon:'\uD83C\uDFE6',cooldown:60},
+  {type:'threshold',k:'mortgage30',dir:'above',val:10,
+   text:'Mortgage rates exceed 10% \u2014 home affordability collapsing for buyers',
+   icon:'\uD83C\uDFE0',cooldown:60},
+  {type:'threshold',k:'mortgage30',dir:'below',val:4,
+   text:'Mortgage rates drop below 4% \u2014 historic affordability for homebuyers',
+   icon:'\uD83C\uDFE0',cooldown:60},
+  {type:'threshold',k:'sentiment',dir:'below',val:60,
+   text:'Consumer sentiment drops below 60 \u2014 the public is deeply pessimistic about the economy',
+   icon:'\uD83D\uDE1F',cooldown:48},
+  {type:'threshold',k:'pmi',dir:'below',val:45,
+   text:'PMI falls below 45 \u2014 manufacturing sector in significant contraction',
+   icon:'\uD83C\uDFED',cooldown:36},
+  {type:'threshold',k:'gdp',dir:'below',val:-2,
+   text:'GDP contracts sharply \u2014 economy in steep decline',
+   icon:'\uD83D\uDCC9',cooldown:24},
+  // Milestones (pre-scripted for specific idx ranges)
+  {type:'milestone',startIdx:(1971-1960)*12+7,endIdx:(1971-1960)*12+9,
+   text:'Nixon ends the gold standard \u2014 the dollar becomes a purely fiat currency, reshaping global finance',
+   icon:'\uD83E\uDE99',cooldown:0},
+  {type:'milestone',startIdx:(1979-1960)*12+7,endIdx:(1979-1960)*12+11,
+   text:'Volcker becomes Fed Chair \u2014 begins the most aggressive rate-hiking campaign in modern history',
+   icon:'\uD83D\uDCA5',cooldown:0},
+  {type:'milestone',startIdx:(1987-1960)*12+9,endIdx:(1987-1960)*12+11,
+   text:'Black Monday \u2014 the stock market crashes 22% in a single day, the largest one-day drop in history',
+   icon:'\uD83D\uDCC9',cooldown:0},
+  {type:'milestone',startIdx:(2000-1960)*12+2,endIdx:(2000-1960)*12+5,
+   text:'The dot-com bubble bursts \u2014 trillions in tech stock wealth evaporates',
+   icon:'\uD83D\uDCBB',cooldown:0},
+  {type:'milestone',startIdx:(2008-1960)*12+8,endIdx:(2008-1960)*12+11,
+   text:'Lehman Brothers collapses \u2014 triggering the worst financial crisis since the Great Depression',
+   icon:'\uD83C\uDFE6',cooldown:0},
+  {type:'milestone',startIdx:(2020-1960)*12+2,endIdx:(2020-1960)*12+4,
+   text:'COVID-19 triggers the fastest bear market in history \u2014 the economy shuts down virtually overnight',
+   icon:'\uD83E\uDDA0',cooldown:0},
+];
+let commentaryCooldowns=new Map(),commentaryTimeout=null,commentaryVisible=false;
+function checkCommentary(){
+  if(idx<=0)return;
+  for(let ci=0;ci<COMMENTARY.length;ci++){
+    const c=COMMENTARY[ci];
+    const last=commentaryCooldowns.get(ci)||-Infinity;
+    if(idx-last<(c.cooldown||24))continue;
+    let triggered=false;
+    if(c.type==='cross'){
+      const v1=D.series[c.k1]?.data[idx],v2=D.series[c.k2]?.data[idx];
+      const p1=D.series[c.k1]?.data[idx-1],p2=D.series[c.k2]?.data[idx-1];
+      if(v1==null||v2==null||p1==null||p2==null)continue;
+      if(c.dir==='above'&&(p1-p2)<=0&&(v1-v2)>0)triggered=true;
+      if(c.dir==='below'&&(p1-p2)>=0&&(v1-v2)<0)triggered=true;
+    }else if(c.type==='threshold'){
+      const v=D.series[c.k]?.data[idx],p=D.series[c.k]?.data[idx-1];
+      if(v==null||p==null)continue;
+      if(c.dir==='above'&&p<=c.val&&v>c.val)triggered=true;
+      if(c.dir==='below'&&p>=c.val&&v<c.val)triggered=true;
+    }else if(c.type==='milestone'){
+      if(idx>=c.startIdx&&idx<=c.endIdx&&idx-1<c.startIdx)triggered=true;
+    }
+    if(triggered){commentaryCooldowns.set(ci,idx);showCommentary(c);return;}
+  }
+}
+function showCommentary(c){
+  const box=$('commentaryBox'),m=D.months[idx];
+  $('commentaryIcon').textContent=c.icon||'';
+  $('commentaryText').textContent=c.text;
+  $('commentaryMeta').textContent=MN[m.month-1]+' '+m.year;
+  box.classList.remove('fade-out');box.classList.add('show');
+  commentaryVisible=true;
+  if(commentaryTimeout)clearTimeout(commentaryTimeout);
+  commentaryTimeout=setTimeout(()=>{
+    box.classList.add('fade-out');
+    setTimeout(()=>{box.classList.remove('show','fade-out');commentaryVisible=false;},400);
+  },4500);
+}
+function hideCommentary(){
+  const box=$('commentaryBox');
+  box.classList.remove('show','fade-out');commentaryVisible=false;
+  if(commentaryTimeout){clearTimeout(commentaryTimeout);commentaryTimeout=null;}
 }
 
 // ════════════════════════════════════════════════════════
@@ -1173,6 +1412,23 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     cx.restore();
   }
 
+  // DCA contribution markers (recurring mode, main chart only)
+  if(investMode&&investType==='recurring'&&investStartIdx>=0&&showRecessions){
+    cx.save();
+    for(let ci=investStartIdx+investInterval;ci<=idx;ci+=investInterval){
+      if(ci>=TOTAL)break;
+      const cx2=xFor(ci);
+      cx.strokeStyle='rgba(88,166,255,.18)';cx.lineWidth=1;
+      cx.setLineDash([2,3]);
+      cx.beginPath();cx.moveTo(cx2,P.t+ph-12);cx.lineTo(cx2,P.t+ph);cx.stroke();
+      // Small dot at bottom
+      cx.fillStyle='rgba(88,166,255,.3)';
+      cx.beginPath();cx.arc(cx2,P.t+ph-1,1.5,0,Math.PI*2);cx.fill();
+    }
+    cx.setLineDash([]);
+    cx.restore();
+  }
+
   // Draw series
   vis.forEach(k=>{
     const s=D.series[k];
@@ -1372,6 +1628,7 @@ function updateUI(){
 
   // Investment panel
   if(investMode) updateInvestPanel();
+  checkCommentary();
 
   // Stats
   KEYS.forEach(k=>{
@@ -1489,9 +1746,13 @@ playBtn.addEventListener('click',()=>{
 });
 resetBtn.addEventListener('click',()=>{
   playing=false;playBtn.innerHTML='&#9654;';playBtn.classList.remove('active');
-  idx=0;updateUI();
+  idx=0;commentaryCooldowns.clear();hideCommentary();updateUI();
 });
-scrubber.addEventListener('input',e=>{idx=parseInt(e.target.value);updateUI();});
+scrubber.addEventListener('input',e=>{
+  const ni=parseInt(e.target.value);
+  if(ni<idx){commentaryCooldowns.forEach((v,k)=>{if(v>ni)commentaryCooldowns.delete(k);});hideCommentary();}
+  idx=ni;updateUI();
+});
 const speeds=[0.25,0.5,1,2,4,8,16];
 let spdIdx=2;
 speedBtn.addEventListener('click',()=>{
@@ -1526,7 +1787,6 @@ investBtn.addEventListener('click',()=>{
   if(investMode&&birthdayMode&&birthdayIdx>=0){investStartIdx=birthdayIdx;}
   updateUI();
 });
-$('investSetNow').addEventListener('click',()=>{investStartIdx=idx;updateUI();});
 $('investSetBday').addEventListener('click',()=>{
   if(birthdayIdx>=0)investStartIdx=birthdayIdx;
   else if(birthdayIdx<0&&birthdayMode)investStartIdx=0;
@@ -1541,6 +1801,62 @@ $('investAmount').addEventListener('input',e=>{
   if(v>0)investAmount=v;
   updateUI();
 });
+
+// Investment type tabs (Lump Sum / Recurring)
+$('investTabLump').addEventListener('click',()=>{
+  investType='lump';
+  $('investTabLump').classList.add('active');
+  $('investTabRecurring').classList.remove('active');
+  updateUI();
+});
+$('investTabRecurring').addEventListener('click',()=>{
+  investType='recurring';
+  $('investTabRecurring').classList.add('active');
+  $('investTabLump').classList.remove('active');
+  updateUI();
+});
+
+// Investment interval input
+$('investInterval').addEventListener('input',e=>{
+  const v=parseInt(e.target.value);
+  if(v>0&&v<=120)investInterval=v;
+  updateUI();
+});
+
+// Date picker builder
+function buildInvestDatePicker(){
+  const mSel=$('investMonth'),ySel=$('investYear');
+  if(!mSel||!ySel)return;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  mSel.innerHTML='';
+  months.forEach((m,i)=>{
+    const o=document.createElement('option');o.value=i;o.textContent=m;
+    mSel.appendChild(o);
+  });
+  ySel.innerHTML='';
+  for(let y=1960;y<=2025;y++){
+    const o=document.createElement('option');o.value=y;o.textContent=y;
+    ySel.appendChild(o);
+  }
+  // Set to current investStartIdx
+  const sm=D.months[Math.max(0,investStartIdx)];
+  if(sm){mSel.value=sm.month;ySel.value=sm.year;}
+
+  function onDateChange(){
+    const m=parseInt(mSel.value),y=parseInt(ySel.value);
+    // Find closest index for month/year
+    let best=0;
+    for(let i=0;i<D.months.length;i++){
+      if(D.months[i].year===y&&D.months[i].month===m){best=i;break;}
+      if(D.months[i].year===y&&D.months[i].month>=m){best=i;break;}
+      if(D.months[i].year>=y){best=i;break;}
+    }
+    investStartIdx=best;
+    updateUI();
+  }
+  mSel.addEventListener('change',onDateChange);
+  ySel.addEventListener('change',onDateChange);
+}
 
 // Panel toggle buttons
 $('togTicker').addEventListener('click',()=>togglePanel('ticker'));
@@ -1595,6 +1911,7 @@ buildChips();
 buildStats();
 buildEvents();
 buildBdayPopup();
+buildInvestDatePicker();
 updateUI();
 updateTogglePositions();
 restorePanelState();
