@@ -230,6 +230,62 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
   transform:translateX(-50%);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Outfit',sans-serif;
   background:rgba(10,16,30,.95);color:var(--text);border:1px solid var(--border2);
   white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+
+/* ── Birthday Mode ── */
+.bday-popup{position:absolute;bottom:calc(100% + 8px);background:var(--s2);
+  border:1px solid var(--border2);border-radius:8px;padding:12px 16px;
+  z-index:40;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:200px}
+.bday-popup.show{display:block}
+.bday-popup-title{font-family:'JetBrains Mono',monospace;font-size:10px;
+  font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;
+  margin-bottom:8px}
+.bday-popup-row{display:flex;gap:6px;margin-bottom:10px}
+.bday-select{font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:var(--s1);color:var(--text);border:1px solid var(--border);
+  border-radius:4px;padding:4px 6px;flex:1;cursor:pointer}
+.bday-popup-actions{display:flex;gap:6px}
+.bday-set,.bday-clear{font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:5px 12px;border-radius:4px;border:1px solid var(--border);
+  background:transparent;color:var(--text);cursor:pointer;transition:all .15s;flex:1}
+.bday-set{background:var(--accent2);color:#0d1117;border-color:var(--accent2);font-weight:600}
+.bday-set:hover{opacity:.85}
+.bday-clear:hover{border-color:var(--red);color:var(--red)}
+.bday-age{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent2);
+  padding:3px 8px;border-radius:3px;background:rgba(63,185,80,.1);
+  border:1px solid rgba(63,185,80,.2);flex-shrink:0;display:none;white-space:nowrap}
+.bday-age.show{display:block}
+
+/* ── Investment Simulator ── */
+.invest-sec{padding:8px 8px}
+.invest-header{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.invest-start{display:flex;align-items:center;gap:4px;margin-bottom:4px;font-size:10px}
+.invest-from-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}
+.invest-from-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);font-weight:600}
+.invest-set-btn{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;
+  border-radius:3px;border:1px solid var(--border);color:var(--dim);cursor:pointer;
+  transition:all .12s;margin-left:auto}
+.invest-set-btn:hover{color:var(--accent);border-color:var(--accent)}
+.invest-amount-row{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.invest-amount-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}
+.invest-amount-input{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  background:var(--s1);color:var(--accent2);border:1px solid var(--border);border-radius:4px;
+  padding:3px 6px;width:80px;text-align:right}
+.invest-amount-input:focus{outline:none;border-color:var(--accent2)}
+.invest-close{font-size:12px;color:var(--dim);cursor:pointer;margin-left:auto;padding:0 2px}
+.invest-close:hover{color:var(--text)}
+.invest-row{display:flex;align-items:center;gap:4px;padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,.03);font-size:10px}
+.invest-row:last-child{border-bottom:none}
+.invest-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.invest-name{color:var(--dim);font-size:9px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invest-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  min-width:55px;text-align:right}
+.invest-ret{font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 4px;
+  border-radius:2px;min-width:42px;text-align:right;flex-shrink:0}
+.invest-ret.up{color:var(--green);background:rgba(63,185,80,.08)}
+.invest-ret.down{color:var(--red);background:rgba(248,81,73,.08)}
+.invest-best{border-left:2px solid var(--accent2);padding-left:4px}
+.invest-note{font-size:8px;color:var(--muted);margin-top:6px;font-style:italic}
 </style>
 </head>
 <body>
@@ -274,20 +330,36 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
   </div>
 
   <!-- Controls -->
-  <div class="controls">
+  <div class="controls" style="position:relative">
     <button class="cb" id="playBtn" data-tip="Play/Pause (Space)">&#9654;</button>
     <button class="cb" id="resetBtn" data-tip="Reset to 1960">&#9198;</button>
     <input type="range" class="scrub" id="scrubber" min="0" max="791" value="791" title="Drag to scrub through time">
     <div class="ctrl-speed" id="speedBtn" data-tip="Click to change playback speed">1&times;</div>
     <div class="ctrl-date" id="dateLabel" data-tip="Current date in the timeline">Dec 2025</div>
     <div class="ev-elapsed" id="evElapsed"></div>
+    <div class="bday-age" id="bdayAge"></div>
     <button class="cb mode" id="normBtn" data-tip="Normalize: compare all lines on the same scale (N)">NORM</button>
     <button class="cb mode" id="eraBtn" data-tip="Browse historical eras with descriptions (E)">ERAS</button>
+    <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
+    <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v1.01</span>
+    <span class="version">v1.02</span>
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
       <span class="kbd">N</span><span class="kbd">E</span>
+      <span class="kbd">B</span><span class="kbd">I</span>
+    </div>
+    <!-- Birthday popup -->
+    <div class="bday-popup" id="bdayPopup">
+      <div class="bday-popup-title">Your Birthday</div>
+      <div class="bday-popup-row">
+        <select id="bdayMonth" class="bday-select"></select>
+        <select id="bdayYear" class="bday-select"></select>
+      </div>
+      <div class="bday-popup-actions">
+        <button class="bday-set" id="bdaySet">Set</button>
+        <button class="bday-clear" id="bdayClear">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -296,6 +368,27 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
     <div class="side-sec">
       <div class="side-label" data-tip="Current values for each visible data series">Live Values</div>
       <div id="statCards"></div>
+    </div>
+    <div class="side-sec invest-sec" id="investSection" style="display:none">
+      <div class="side-label" data-tip="Hypothetical growth of your investment over time">
+        Investment Sim
+        <span class="invest-close" id="investClose">&times;</span>
+      </div>
+      <div class="invest-start">
+        <span class="invest-from-label">From:</span>
+        <span class="invest-from-date" id="investFromDate">Jan 1960</span>
+        <span class="invest-set-btn" id="investSetNow" data-tip="Set start to current date">Set</span>
+      </div>
+      <div id="investFromBday" style="display:none">
+        <span class="invest-set-btn" id="investSetBday">&#127874; From Birth</span>
+      </div>
+      <div class="invest-amount-row">
+        <span class="invest-amount-label">$</span>
+        <input type="number" class="invest-amount-input" id="investAmount" value="10000" min="1" step="1000">
+        <span class="invest-amount-label">invested</span>
+      </div>
+      <div id="investRows"></div>
+      <div class="invest-note">Simplified model. Bonds: reinvest at yield. Cash: 65% of fed funds.</div>
     </div>
     <div class="side-sec" id="corrSection">
       <div class="side-label">Correlation <span class="badge">60mo</span> <span class="corr-toggle" id="corrToggle" data-tip="Show/hide correlation grid">&#9660;</span></div>
@@ -348,6 +441,8 @@ let normalize = false, normBase = 0;
 let visible = new Set(['fed_funds','cpi','gs10','unrate','mortgage30','case_shiller','sentiment','pmi']);
 let eraMode = false, eraIdx = 0;
 let selectedEvent = -1, impactMonths = 3;
+let birthdayIdx = -1, birthdayMode = false, bdayPopupOpen = false;
+let investMode = false, investStartIdx = 0, investAmount = 10000;
 
 // ════════════════════════════════════════════════════════
 // DOM REFS
@@ -395,6 +490,120 @@ function fmtVal(k, v){
   if(u==='pts') return Math.round(v).toLocaleString();
   if(u==='idx') return normalize ? v.toFixed(1) : Math.round(v).toLocaleString();
   return v.toFixed(2)+'%';
+}
+
+// ════════════════════════════════════════════════════════
+// BIRTHDAY MODE
+// ════════════════════════════════════════════════════════
+function buildBdayPopup(){
+  const mSel=$('bdayMonth'), ySel=$('bdayYear');
+  MN.forEach((m,i)=>{const o=document.createElement('option');o.value=i+1;o.textContent=m;mSel.appendChild(o);});
+  for(let y=1940;y<=2025;y++){const o=document.createElement('option');o.value=y;o.textContent=y;ySel.appendChild(o);}
+  ySel.value=1990;
+}
+function setBirthday(month,year){
+  birthdayIdx=D.months.findIndex(m=>m.year===year&&m.month===month);
+  if(birthdayIdx<0&&year<1960){birthdayIdx=0;} // born before data starts
+  if(year<1960){birthdayIdx=-(((1960-year)*12)+(1-month));} // negative index for pre-1960 births
+  birthdayMode=true;
+  $('bdayBtn').classList.add('active');
+  // Jump to birth month if within data range
+  if(birthdayIdx>=0&&birthdayIdx<TOTAL){idx=birthdayIdx;$('scrubber').value=idx;}
+  else{idx=0;$('scrubber').value=0;}
+  $('bdayPopup').classList.remove('show');bdayPopupOpen=false;
+  updateUI();
+}
+function clearBirthday(){
+  birthdayIdx=-1;birthdayMode=false;
+  $('bdayBtn').classList.remove('active');
+  $('bdayAge').classList.remove('show');
+  $('bdayPopup').classList.remove('show');bdayPopupOpen=false;
+  updateUI();
+}
+const MILESTONES=[{age:5,label:'5'},{age:10,label:'10'},{age:18,label:'18'},{age:21,label:'21'},
+  {age:30,label:'30'},{age:40,label:'40'},{age:50,label:'50'},{age:65,label:'65'}];
+
+// ════════════════════════════════════════════════════════
+// INVESTMENT SIMULATOR
+// ════════════════════════════════════════════════════════
+function calcSP500(startI,endI,principal){
+  const s=D.series.sp500.data[startI];
+  if(s<=0)return principal;
+  let v=principal;
+  for(let i=startI+1;i<=endI;i++){
+    const prev=D.series.sp500.data[i-1],curr=D.series.sp500.data[i];
+    if(prev<=0)continue;
+    v*=(curr/prev)*Math.pow(1.02,1/12); // price + ~2% annual dividend
+  }
+  return v;
+}
+function calcBonds(startI,endI,principal){
+  let v=principal;
+  for(let i=startI+1;i<=endI;i++){
+    const y=D.series.gs10.data[i-1];
+    v*=(1+((y/100)/12)); // simple monthly yield
+  }
+  return v;
+}
+function calcRealEstate(startI,endI,principal){
+  const s=D.series.case_shiller.data[startI];
+  if(s<=0)return principal;
+  const e=D.series.case_shiller.data[endI];
+  return principal*(e/s);
+}
+function calcCash(startI,endI,principal){
+  let v=principal;
+  for(let i=startI+1;i<=endI;i++){
+    const r=D.series.fed_funds.data[i-1]*0.65; // savings ≈ 65% of fed funds
+    v*=(1+((r/100)/12));
+  }
+  return v;
+}
+function formatDollar(v){
+  if(v>=1e6)return(v/1e6).toFixed(1)+'M';
+  if(v>=1e3)return(v/1e3).toFixed(1)+'K';
+  return Math.round(v).toLocaleString();
+}
+const INVEST_VEHICLES=[
+  {key:'sp500',name:'S&P 500',color:'#fbbf24',calc:calcSP500},
+  {key:'gs10',name:'10Y Bonds',color:'#22d3ee',calc:calcBonds},
+  {key:'case_shiller',name:'Real Estate',color:'#fb7185',calc:calcRealEstate},
+  {key:'fed_funds',name:'Cash/Savings',color:'#818cf8',calc:calcCash}
+];
+function updateInvestPanel(){
+  if(!investMode)return;
+  const rows=$('investRows');rows.innerHTML='';
+  const sm=D.months[Math.max(0,investStartIdx)];
+  $('investFromDate').textContent=MN[sm.month-1]+' '+sm.year;
+  $('investFromBday').style.display=birthdayMode?'':'none';
+  const amt=investAmount;
+  if(idx<=investStartIdx||investStartIdx<0){
+    INVEST_VEHICLES.forEach(v=>{
+      const row=document.createElement('div');row.className='invest-row';
+      row.innerHTML=`<span class="invest-dot" style="background:${v.color}"></span>
+        <span class="invest-name">${v.name}</span>
+        <span class="invest-val">$${formatDollar(amt)}</span>
+        <span class="invest-ret up">+0%</span>`;
+      rows.appendChild(row);
+    });return;
+  }
+  let bestVal=0,bestKey='';
+  const results=INVEST_VEHICLES.map(v=>{
+    const val=v.calc(Math.max(0,investStartIdx),idx,amt);
+    const ret=((val-amt)/amt)*100;
+    if(val>bestVal){bestVal=val;bestKey=v.key;}
+    return{vehicle:v,val,ret};
+  });
+  results.forEach(r=>{
+    const row=document.createElement('div');
+    row.className=r.vehicle.key===bestKey?'invest-row invest-best':'invest-row';
+    const cls=r.ret>=0?'up':'down',sign=r.ret>=0?'+':'';
+    row.innerHTML=`<span class="invest-dot" style="background:${r.vehicle.color}"></span>
+      <span class="invest-name">${r.vehicle.name}</span>
+      <span class="invest-val" style="color:${r.vehicle.color}">$${formatDollar(r.val)}</span>
+      <span class="invest-ret ${cls}">${sign}${r.ret>=1000?formatDollar(r.ret)+'%':r.ret.toFixed(0)+'%'}</span>`;
+    rows.appendChild(row);
+  });
 }
 
 // ════════════════════════════════════════════════════════
@@ -765,6 +974,53 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     cx.setLineDash([]);
   }
 
+  // Birthday milestone lines (main chart only)
+  if(birthdayMode&&birthdayIdx!==-1&&showRecessions){
+    const birthI=birthdayIdx<0?0:birthdayIdx;
+    const birthOffset=birthdayIdx<0?Math.abs(birthdayIdx):0;
+    MILESTONES.forEach(ms=>{
+      const mi=birthI+((ms.age*12)-birthOffset);
+      if(mi<0||mi>=TOTAL||mi>idx)return;
+      const x=xFor(mi);
+      cx.save();
+      cx.strokeStyle='rgba(63,185,80,.25)';cx.lineWidth=1;
+      cx.setLineDash([3,4]);
+      cx.beginPath();cx.moveTo(x,P.t);cx.lineTo(x,P.t+ph);cx.stroke();
+      cx.setLineDash([]);
+      cx.font='bold 9px "JetBrains Mono",monospace';
+      cx.fillStyle='rgba(63,185,80,.6)';cx.textAlign='center';
+      cx.fillText(ms.label,x,P.t-4);
+      cx.restore();
+    });
+    // Birth marker
+    if(birthI<=idx){
+      const bx=xFor(birthI);
+      cx.save();
+      cx.strokeStyle='rgba(63,185,80,.5)';cx.lineWidth=1.5;
+      cx.setLineDash([5,3]);
+      cx.beginPath();cx.moveTo(bx,P.t);cx.lineTo(bx,P.t+ph);cx.stroke();
+      cx.setLineDash([]);
+      cx.font='bold 9px "JetBrains Mono",monospace';
+      cx.fillStyle='rgba(63,185,80,.8)';cx.textAlign='center';
+      cx.fillText('★ Born',bx,P.t+ph+12);
+      cx.restore();
+    }
+  }
+
+  // Investment start marker (main chart only)
+  if(investMode&&investStartIdx>=0&&investStartIdx<=idx&&showRecessions){
+    const ix=xFor(investStartIdx);
+    cx.save();
+    cx.strokeStyle='rgba(88,166,255,.35)';cx.lineWidth=1;
+    cx.setLineDash([4,4]);
+    cx.beginPath();cx.moveTo(ix,P.t);cx.lineTo(ix,P.t+ph);cx.stroke();
+    cx.setLineDash([]);
+    cx.font='8px "JetBrains Mono",monospace';
+    cx.fillStyle='rgba(88,166,255,.5)';cx.textAlign='center';
+    cx.fillText('$'+formatDollar(investAmount),ix,P.t-4);
+    cx.restore();
+  }
+
   // Draw series
   vis.forEach(k=>{
     const s=D.series[k];
@@ -944,6 +1200,27 @@ function updateUI(){
     } else { elEl.classList.remove('show'); }
   } else { elEl.classList.remove('show'); }
 
+  // Birthday age display
+  const ageEl=$('bdayAge');
+  if(birthdayMode&&birthdayIdx!==-1){
+    const diff=idx-birthdayIdx;
+    if(diff>=0){
+      const yrs=Math.floor(diff/12),mos=diff%12;
+      ageEl.textContent='Age: '+yrs+'y '+mos+'mo';
+    } else if(birthdayIdx<0){
+      // Pre-1960 birth: birthdayIdx is negative offset
+      const totalMonths=idx+Math.abs(birthdayIdx);
+      const yrs=Math.floor(totalMonths/12),mos=totalMonths%12;
+      ageEl.textContent='Age: '+yrs+'y '+mos+'mo';
+    } else {
+      ageEl.textContent='Not born yet';
+    }
+    ageEl.classList.add('show');
+  } else { ageEl.classList.remove('show'); }
+
+  // Investment panel
+  if(investMode) updateInvestPanel();
+
   // Stats
   KEYS.forEach(k=>{
     const v=getVal(k,idx);
@@ -970,6 +1247,11 @@ function updateUI(){
     const ei=D.months.findIndex(mm=>mm.year===ev.y&&mm.month===ev.m);
     el.classList.toggle('active',Math.abs(ei-idx)<6);
     el.classList.toggle('selected',selectedEvent===i);
+    // Dim events before user's birth
+    if(birthdayMode&&birthdayIdx!==-1){
+      const birthI=birthdayIdx<0?0:birthdayIdx;
+      el.style.opacity=(ei>=birthI)?'':'0.3';
+    } else { el.style.opacity=''; }
   });
 
   drawSparklines();
@@ -1071,6 +1353,43 @@ normBtn.addEventListener('click',()=>{
   normBtn.classList.toggle('active',normalize);
 });
 
+// Birthday controls
+const bdayBtn=$('bdayBtn');
+bdayBtn.addEventListener('click',()=>{
+  if(bdayPopupOpen){$('bdayPopup').classList.remove('show');bdayPopupOpen=false;}
+  else{$('bdayPopup').classList.add('show');bdayPopupOpen=true;}
+});
+$('bdaySet').addEventListener('click',()=>{
+  const m=parseInt($('bdayMonth').value),y=parseInt($('bdayYear').value);
+  setBirthday(m,y);
+});
+$('bdayClear').addEventListener('click',clearBirthday);
+
+// Investment controls
+const investBtn=$('investBtn');
+investBtn.addEventListener('click',()=>{
+  investMode=!investMode;
+  investBtn.classList.toggle('active',investMode);
+  $('investSection').style.display=investMode?'':'none';
+  if(investMode&&birthdayMode&&birthdayIdx>=0){investStartIdx=birthdayIdx;}
+  updateUI();
+});
+$('investSetNow').addEventListener('click',()=>{investStartIdx=idx;updateUI();});
+$('investSetBday').addEventListener('click',()=>{
+  if(birthdayIdx>=0)investStartIdx=birthdayIdx;
+  else if(birthdayIdx<0&&birthdayMode)investStartIdx=0;
+  updateUI();
+});
+$('investClose').addEventListener('click',()=>{
+  investMode=false;investBtn.classList.remove('active');
+  $('investSection').style.display='none';
+});
+$('investAmount').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value);
+  if(v>0)investAmount=v;
+  updateUI();
+});
+
 // Keyboard
 document.addEventListener('keydown',e=>{
   if(eraMode){
@@ -1079,7 +1398,10 @@ document.addEventListener('keydown',e=>{
     if(e.key==='ArrowLeft'&&eraIdx>0) showEra(eraIdx-1);
     return;
   }
-  if(e.key==='Escape'&&selectedEvent>=0){selectedEvent=-1;$('evImpact').classList.remove('show');updateUI();return;}
+  if(e.key==='Escape'){
+    if(bdayPopupOpen){$('bdayPopup').classList.remove('show');bdayPopupOpen=false;return;}
+    if(selectedEvent>=0){selectedEvent=-1;$('evImpact').classList.remove('show');updateUI();return;}
+  }
   if(e.key===' '){e.preventDefault();playBtn.click();}
   if(e.key==='ArrowRight'){e.preventDefault();if(idx<TOTAL-1){idx++;updateUI();}}
   if(e.key==='ArrowLeft'){e.preventDefault();if(idx>0){idx--;updateUI();}}
@@ -1087,6 +1409,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'){e.preventDefault();idx=Math.max(0,idx-12);updateUI();}
   if(e.key==='n'||e.key==='N') normBtn.click();
   if(e.key==='e'||e.key==='E') eraBtn.click();
+  if(e.key==='b'||e.key==='B') bdayBtn.click();
+  if(e.key==='i'||e.key==='I') investBtn.click();
   if(e.key==='Home'){idx=0;updateUI();}
   if(e.key==='End'){idx=TOTAL-1;updateUI();}
 });
@@ -1099,6 +1423,7 @@ buildTicker();
 buildChips();
 buildStats();
 buildEvents();
+buildBdayPopup();
 updateUI();
 requestAnimationFrame(mainLoop);
 </script>
