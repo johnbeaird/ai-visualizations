@@ -14,6 +14,7 @@
   --accent:#58a6ff;--accent2:#3fb950;
   --red:#f85149;--green:#3fb950;--amber:#d29922;
   --recession:rgba(248,81,73,.06);
+  --left-w:180px;--right-w:180px;--ticker-h:44px;--sub-h:160px;
 }
 html,body{height:100%;overflow:hidden}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
@@ -22,7 +23,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 
 /* ── Ticker Strip ── */
 .ticker{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--s1);
-  overflow-x:auto;scrollbar-width:none;height:44px;flex-shrink:0}
+  overflow-x:auto;scrollbar-width:none;height:var(--ticker-h);flex-shrink:0;
+  transition:height .4s cubic-bezier(.4,0,.2,1),opacity .3s,transform .35s,filter .3s;
+  transform-origin:top center}
 .ticker::-webkit-scrollbar{display:none}
 .tick-item{display:flex;align-items:center;gap:8px;padding:0 14px;
   border-right:1px solid var(--border);cursor:pointer;transition:background .15s;
@@ -36,9 +39,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .tick-spark canvas{width:48px;height:24px}
 
 /* ── Layout ── */
-.layout{display:grid;grid-template-columns:1fr 180px;grid-template-rows:1fr auto auto;
-  height:calc(100vh - 44px)}
-@media(max-width:700px){.layout{grid-template-columns:1fr;}}
+.layout{display:grid;grid-template-columns:var(--left-w) 1fr var(--right-w);
+  grid-template-rows:1fr var(--sub-h) auto;
+  height:calc(100vh - var(--ticker-h));
+  transition:grid-template-columns .45s cubic-bezier(.4,0,.2,1),
+             grid-template-rows .45s cubic-bezier(.4,0,.2,1),
+             height .4s cubic-bezier(.4,0,.2,1)}
+@media(max-width:900px){.layout{grid-template-columns:1fr;--left-w:0px;--right-w:0px}}
 
 /* ── Chart panels ── */
 .panel{background:var(--s1);border:1px solid var(--border);position:relative;display:flex;flex-direction:column;overflow:hidden}
@@ -55,10 +62,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .canvas-wrap{flex:1;position:relative;min-height:0}
 .canvas-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
 
-.main-chart{grid-column:1;grid-row:1;border-radius:0}
-.sub-charts{grid-column:1;grid-row:2;display:grid;grid-template-columns:1fr 1fr;
-  height:160px}
-@media(max-width:700px){.sub-charts{height:130px}}
+.main-chart{grid-column:2;grid-row:1;border-radius:0}
+.sub-charts{grid-column:2;grid-row:2;display:grid;grid-template-columns:1fr 1fr;
+  overflow:hidden;transition:opacity .3s,filter .3s,transform .35s;transform-origin:bottom center}
+@media(max-width:900px){.sub-charts{grid-column:1}}
 .sub-charts .panel:first-child{border-right:none}
 
 /* ── Tooltip ── */
@@ -75,11 +82,19 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .tt-ev{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);
   font-size:10px;color:var(--accent)}
 
-/* ── Side Panel ── */
-.side{grid-column:2;grid-row:1/4;background:var(--s1);border-left:1px solid var(--border);
+/* ── Left Sidebar ── */
+.left-bar{grid-column:1;grid-row:1/4;background:var(--s1);border-right:1px solid var(--border);
+  overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+  transition:opacity .3s,filter .3s,transform .35s}
+@media(max-width:900px){.left-bar{display:none}}
+
+/* ── Right Side Panel ── */
+.side{grid-column:3;grid-row:1/4;background:var(--s1);border-left:1px solid var(--border);
   overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:thin;
-  scrollbar-color:var(--border) transparent}
-@media(max-width:700px){.side{grid-column:1;grid-row:4;max-height:300px;border-left:none;border-top:1px solid var(--border)}}
+  scrollbar-color:var(--border) transparent;
+  transition:opacity .3s,filter .3s,transform .35s}
+@media(max-width:900px){.side{grid-column:1;grid-row:4;max-height:300px;border-left:none;border-top:1px solid var(--border)}}
 .side-sec{padding:8px 8px;border-bottom:1px solid var(--border)}
 .side-sec:last-child{border-bottom:none}
 .side-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
@@ -183,8 +198,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .era-dot.active{background:var(--accent)}
 
 /* Controls */
-.controls{grid-column:1;grid-row:3;display:flex;align-items:center;gap:8px;
-  padding:8px 14px;background:var(--s1);border-top:1px solid var(--border);flex-shrink:0}
+.controls{grid-column:2;grid-row:3;display:flex;align-items:center;gap:8px;
+  padding:8px 14px;background:var(--s1);border-top:1px solid var(--border);flex-shrink:0;
+  transition:opacity .3s,filter .3s,transform .3s,max-height .4s cubic-bezier(.4,0,.2,1),padding .4s;
+  max-height:80px;overflow:hidden}
+@media(max-width:900px){.controls{grid-column:1}}
 .cb{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);
   background:transparent;color:var(--text);cursor:pointer;display:flex;
   align-items:center;justify-content:center;transition:all .15s;font-size:12px;flex-shrink:0}
@@ -213,7 +231,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .kbd-hints{display:flex;gap:4px;margin-left:8px;flex-shrink:0}
 .kbd{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 5px;
   border-radius:3px;background:var(--s3);color:var(--muted);border:1px solid var(--border)}
-@media(max-width:700px){.kbd-hints{display:none}}
+@media(max-width:900px){.kbd-hints{display:none}}
 
 /* Guide link */
 .guide-link{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);
@@ -230,6 +248,51 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
   transform:translateX(-50%);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Outfit',sans-serif;
   background:rgba(10,16,30,.95);color:var(--text);border:1px solid var(--border2);
   white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+
+/* ── Collapse System ── */
+body.ticker-collapsed{--ticker-h:0px}
+body.ticker-collapsed .ticker{opacity:0;transform:scaleY(0);filter:blur(3px);
+  border-bottom:none;pointer-events:none;overflow:hidden}
+body.left-collapsed{--left-w:0px}
+body.left-collapsed .left-bar{opacity:0;transform:translateX(-20px) scale(.97);
+  filter:blur(4px);pointer-events:none;overflow:hidden;border-right:none}
+body.right-collapsed{--right-w:0px}
+body.right-collapsed .side{opacity:0;transform:translateX(20px) scale(.97);
+  filter:blur(4px);pointer-events:none;overflow:hidden;border-left:none}
+body.sub-collapsed{--sub-h:0px}
+body.sub-collapsed .sub-charts{opacity:0;transform:scaleY(.8);
+  filter:blur(3px);pointer-events:none;overflow:hidden}
+body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-bottom:0;
+  transform:translateY(8px);filter:blur(2px);pointer-events:none;overflow:hidden;border-top:none}
+
+/* ── Panel Toggle Buttons ── */
+.toggle-overlay{position:fixed;inset:0;pointer-events:none;z-index:100}
+.panel-toggle{position:absolute;pointer-events:auto;background:var(--s2);
+  border:1px solid var(--border2);color:var(--dim);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  transition:all .25s ease;box-shadow:0 2px 8px rgba(0,0,0,.3);padding:0;
+  opacity:.6}
+.panel-toggle:hover{color:var(--accent);border-color:var(--accent);opacity:1;
+  box-shadow:0 0 16px rgba(88,166,255,.25),0 2px 8px rgba(0,0,0,.3)}
+.panel-toggle:active{transform:scale(.92)!important}
+.panel-toggle.collapsed{opacity:1;color:var(--accent);border-color:rgba(88,166,255,.4);
+  animation:togglePulse 2.5s ease-in-out infinite}
+@keyframes togglePulse{
+  0%{box-shadow:0 0 4px rgba(88,166,255,.15),0 2px 8px rgba(0,0,0,.3)}
+  50%{box-shadow:0 0 18px rgba(88,166,255,.4),0 2px 8px rgba(0,0,0,.3)}
+  100%{box-shadow:0 0 4px rgba(88,166,255,.15),0 2px 8px rgba(0,0,0,.3)}
+}
+/* Sidebar toggles: vertical pills */
+.toggle-left,.toggle-right{width:16px;height:40px}
+.toggle-left{border-radius:0 6px 6px 0}
+.toggle-right{border-radius:6px 0 0 6px}
+/* Horizontal toggles */
+.toggle-ticker,.toggle-sub,.toggle-controls{height:14px;width:40px}
+.toggle-ticker{border-radius:0 0 6px 6px}
+.toggle-sub{border-radius:6px 6px 0 0}
+.toggle-controls{border-radius:6px 6px 0 0}
+@media(max-width:900px){.toggle-overlay{display:none}}
 
 /* ── Birthday Mode ── */
 .bday-popup{position:absolute;bottom:calc(100% + 8px);background:var(--s2);
@@ -293,82 +356,18 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 <!-- Ticker -->
 <div class="ticker" id="ticker"></div>
 
-<div class="layout">
-  <!-- Main chart -->
-  <div class="panel main-chart" id="mainPanel">
-    <div class="panel-header" id="mainChips"></div>
-    <div class="canvas-wrap" id="mainWrap">
-      <canvas id="mainCanvas"></canvas>
-      <div class="tt" id="mainTT"></div>
-    </div>
-    <!-- Era overlay -->
-    <div class="era-overlay" id="eraOverlay">
-      <span class="era-close" id="eraClose">&times;</span>
-      <div class="era-title" id="eraTitle"></div>
-      <div class="era-period" id="eraPeriod"></div>
-      <div class="era-desc" id="eraDesc"></div>
-      <div class="era-keys" id="eraKeys"></div>
-      <div class="era-dots" id="eraDots"></div>
-      <div class="era-nav">
-        <button class="era-btn" id="eraPrev">&larr; Prev</button>
-        <button class="era-btn" id="eraJump">Jump to Era</button>
-        <button class="era-btn" id="eraNext">Next &rarr;</button>
-      </div>
-    </div>
-  </div>
+<!-- Panel Toggle Overlay -->
+<div class="toggle-overlay" id="toggleOverlay">
+  <button class="panel-toggle toggle-ticker" id="togTicker" title="Toggle ticker (1)">&#9650;</button>
+  <button class="panel-toggle toggle-left" id="togLeft" title="Toggle analysis panel (2)">&#9664;</button>
+  <button class="panel-toggle toggle-right" id="togRight" title="Toggle live values (3)">&#9654;</button>
+  <button class="panel-toggle toggle-sub" id="togSub" title="Toggle sub-charts (4)">&#9660;</button>
+  <button class="panel-toggle toggle-controls" id="togControls" title="Toggle controls (5)">&#9660;</button>
+</div>
 
-  <!-- Sub charts -->
-  <div class="sub-charts">
-    <div class="panel" id="housingPanel">
-      <div class="panel-header" id="housingChips"></div>
-      <div class="canvas-wrap" id="housingWrap"><canvas id="housingCanvas"></canvas></div>
-    </div>
-    <div class="panel" id="sentPanel">
-      <div class="panel-header" id="sentChips"></div>
-      <div class="canvas-wrap" id="sentWrap"><canvas id="sentCanvas"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Controls -->
-  <div class="controls" style="position:relative">
-    <button class="cb" id="playBtn" data-tip="Play/Pause (Space)">&#9654;</button>
-    <button class="cb" id="resetBtn" data-tip="Reset to 1960">&#9198;</button>
-    <input type="range" class="scrub" id="scrubber" min="0" max="791" value="791" title="Drag to scrub through time">
-    <div class="ctrl-speed" id="speedBtn" data-tip="Click to change playback speed">1&times;</div>
-    <div class="ctrl-date" id="dateLabel" data-tip="Current date in the timeline">Dec 2025</div>
-    <div class="ev-elapsed" id="evElapsed"></div>
-    <div class="bday-age" id="bdayAge"></div>
-    <button class="cb mode" id="normBtn" data-tip="Normalize: compare all lines on the same scale (N)">NORM</button>
-    <button class="cb mode" id="eraBtn" data-tip="Browse historical eras with descriptions (E)">ERAS</button>
-    <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
-    <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
-    <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v1.02</span>
-    <div class="kbd-hints">
-      <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
-      <span class="kbd">N</span><span class="kbd">E</span>
-      <span class="kbd">B</span><span class="kbd">I</span>
-    </div>
-    <!-- Birthday popup -->
-    <div class="bday-popup" id="bdayPopup">
-      <div class="bday-popup-title">Your Birthday</div>
-      <div class="bday-popup-row">
-        <select id="bdayMonth" class="bday-select"></select>
-        <select id="bdayYear" class="bday-select"></select>
-      </div>
-      <div class="bday-popup-actions">
-        <button class="bday-set" id="bdaySet">Set</button>
-        <button class="bday-clear" id="bdayClear">Clear</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Side panel -->
-  <div class="side" id="side">
-    <div class="side-sec">
-      <div class="side-label" data-tip="Current values for each visible data series">Live Values</div>
-      <div id="statCards"></div>
-    </div>
+<div class="layout" id="layout">
+  <!-- Left sidebar: Analysis tools -->
+  <div class="left-bar" id="leftBar">
     <div class="side-sec invest-sec" id="investSection" style="display:none">
       <div class="side-label" data-tip="Hypothetical growth of your investment over time">
         Investment Sim
@@ -413,6 +412,84 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
       </div>
     </div>
   </div>
+
+  <!-- Main chart -->
+  <div class="panel main-chart" id="mainPanel">
+    <div class="panel-header" id="mainChips"></div>
+    <div class="canvas-wrap" id="mainWrap">
+      <canvas id="mainCanvas"></canvas>
+      <div class="tt" id="mainTT"></div>
+    </div>
+    <!-- Era overlay -->
+    <div class="era-overlay" id="eraOverlay">
+      <span class="era-close" id="eraClose">&times;</span>
+      <div class="era-title" id="eraTitle"></div>
+      <div class="era-period" id="eraPeriod"></div>
+      <div class="era-desc" id="eraDesc"></div>
+      <div class="era-keys" id="eraKeys"></div>
+      <div class="era-dots" id="eraDots"></div>
+      <div class="era-nav">
+        <button class="era-btn" id="eraPrev">&larr; Prev</button>
+        <button class="era-btn" id="eraJump">Jump to Era</button>
+        <button class="era-btn" id="eraNext">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub charts -->
+  <div class="sub-charts" id="subChartsWrap">
+    <div class="panel" id="housingPanel">
+      <div class="panel-header" id="housingChips"></div>
+      <div class="canvas-wrap" id="housingWrap"><canvas id="housingCanvas"></canvas></div>
+    </div>
+    <div class="panel" id="sentPanel">
+      <div class="panel-header" id="sentChips"></div>
+      <div class="canvas-wrap" id="sentWrap"><canvas id="sentCanvas"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls" style="position:relative">
+    <button class="cb" id="playBtn" data-tip="Play/Pause (Space)">&#9654;</button>
+    <button class="cb" id="resetBtn" data-tip="Reset to 1960">&#9198;</button>
+    <input type="range" class="scrub" id="scrubber" min="0" max="791" value="791" title="Drag to scrub through time">
+    <div class="ctrl-speed" id="speedBtn" data-tip="Click to change playback speed">1&times;</div>
+    <div class="ctrl-date" id="dateLabel" data-tip="Current date in the timeline">Dec 2025</div>
+    <div class="ev-elapsed" id="evElapsed"></div>
+    <div class="bday-age" id="bdayAge"></div>
+    <button class="cb mode" id="normBtn" data-tip="Normalize: compare all lines on the same scale (N)">NORM</button>
+    <button class="cb mode" id="eraBtn" data-tip="Browse historical eras with descriptions (E)">ERAS</button>
+    <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
+    <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
+    <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
+    <span class="version">v1.03</span>
+    <div class="kbd-hints">
+      <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
+      <span class="kbd">N</span><span class="kbd">E</span>
+      <span class="kbd">B</span><span class="kbd">I</span>
+      <span class="kbd">1-5 Panels</span>
+    </div>
+    <!-- Birthday popup -->
+    <div class="bday-popup" id="bdayPopup">
+      <div class="bday-popup-title">Your Birthday</div>
+      <div class="bday-popup-row">
+        <select id="bdayMonth" class="bday-select"></select>
+        <select id="bdayYear" class="bday-select"></select>
+      </div>
+      <div class="bday-popup-actions">
+        <button class="bday-set" id="bdaySet">Set</button>
+        <button class="bday-clear" id="bdayClear">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right sidebar: Live Values only -->
+  <div class="side" id="side">
+    <div class="side-sec">
+      <div class="side-label" data-tip="Current values for each visible data series">Live Values</div>
+      <div id="statCards"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -443,6 +520,81 @@ let eraMode = false, eraIdx = 0;
 let selectedEvent = -1, impactMonths = 3;
 let birthdayIdx = -1, birthdayMode = false, bdayPopupOpen = false;
 let investMode = false, investStartIdx = 0, investAmount = 10000;
+
+// ════════════════════════════════════════════════════════
+// PANEL COLLAPSE SYSTEM
+// ════════════════════════════════════════════════════════
+const panelState = {ticker:true,leftBar:true,rightBar:true,subCharts:true,controls:true};
+const COLLAPSE_MAP = {
+  ticker:'ticker-collapsed', leftBar:'left-collapsed', rightBar:'right-collapsed',
+  subCharts:'sub-collapsed', controls:'controls-collapsed'
+};
+const TOGGLE_IDS = {
+  ticker:'togTicker', leftBar:'togLeft', rightBar:'togRight',
+  subCharts:'togSub', controls:'togControls'
+};
+const ARROWS = {
+  ticker:{open:'\u25B2',closed:'\u25BC'},
+  leftBar:{open:'\u25C0',closed:'\u25B6'},
+  rightBar:{open:'\u25B6',closed:'\u25C0'},
+  subCharts:{open:'\u25BC',closed:'\u25B2'},
+  controls:{open:'\u25BC',closed:'\u25B2'}
+};
+function togglePanel(key){
+  panelState[key]=!panelState[key];
+  document.body.classList.toggle(COLLAPSE_MAP[key],!panelState[key]);
+  const btn=document.getElementById(TOGGLE_IDS[key]);
+  const a=ARROWS[key];
+  btn.textContent=panelState[key]?a.open:a.closed;
+  btn.classList.toggle('collapsed',!panelState[key]);
+  // After grid transition, recalc canvas sizes & toggle positions
+  setTimeout(()=>{resizeAll();updateTogglePositions();},460);
+  // Save state
+  try{localStorage.setItem('fredPanelState',JSON.stringify(panelState));}catch(e){}
+}
+function updateTogglePositions(){
+  const ticker=document.querySelector('.ticker');
+  const layout=document.getElementById('layout');
+  const leftBar=document.getElementById('leftBar');
+  const side=document.getElementById('side');
+  const subW=document.getElementById('subChartsWrap');
+  const ctrl=document.querySelector('.controls');
+  if(!layout)return;
+  const lR=layout.getBoundingClientRect();
+  // Ticker toggle: horizontally centered at bottom edge of ticker
+  const tR=ticker.getBoundingClientRect();
+  const tg=document.getElementById('togTicker');
+  tg.style.left=(tR.left+tR.width/2-20)+'px';
+  tg.style.top=Math.max(0,tR.bottom-1)+'px';
+  // Left toggle: at right edge of left sidebar
+  const lt=document.getElementById('togLeft');
+  const leftEdge=panelState.leftBar?leftBar.getBoundingClientRect().right:lR.left;
+  lt.style.left=(leftEdge-1)+'px';
+  lt.style.top=(lR.top+lR.height/2-20)+'px';
+  // Right toggle: at left edge of right sidebar
+  const rt=document.getElementById('togRight');
+  const rightEdge=panelState.rightBar?side.getBoundingClientRect().left:lR.right;
+  rt.style.left=(rightEdge-16)+'px';
+  rt.style.top=(lR.top+lR.height/2-20)+'px';
+  // Sub-charts toggle: centered at top edge of sub-charts area
+  const sR=subW.getBoundingClientRect();
+  const st=document.getElementById('togSub');
+  st.style.left=(sR.left+sR.width/2-20)+'px';
+  st.style.top=(sR.top-1)+'px';
+  // Controls toggle: centered at top edge of controls
+  const cR=ctrl.getBoundingClientRect();
+  const ct=document.getElementById('togControls');
+  ct.style.left=(cR.left+cR.width/2-20)+'px';
+  ct.style.top=Math.max(lR.top,(panelState.controls?cR.top-1:cR.top))+'px';
+}
+function restorePanelState(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('fredPanelState'));
+    if(saved){Object.keys(saved).forEach(k=>{
+      if(saved[k]===false&&panelState[k]===true)togglePanel(k);
+    });}
+  }catch(e){}
+}
 
 // ════════════════════════════════════════════════════════
 // DOM REFS
@@ -1390,8 +1542,27 @@ $('investAmount').addEventListener('input',e=>{
   updateUI();
 });
 
+// Panel toggle buttons
+$('togTicker').addEventListener('click',()=>togglePanel('ticker'));
+$('togLeft').addEventListener('click',()=>togglePanel('leftBar'));
+$('togRight').addEventListener('click',()=>togglePanel('rightBar'));
+$('togSub').addEventListener('click',()=>togglePanel('subCharts'));
+$('togControls').addEventListener('click',()=>togglePanel('controls'));
+
+// Reposition toggles after grid transition
+document.getElementById('layout').addEventListener('transitionend',e=>{
+  if(e.target===document.getElementById('layout')){resizeAll();updateTogglePositions();}
+});
+
 // Keyboard
 document.addEventListener('keydown',e=>{
+  // Panel toggle keys 1-5 (skip when focused on input/select)
+  const tag=document.activeElement?document.activeElement.tagName:'';
+  if(e.key>='1'&&e.key<='5'&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&tag!=='INPUT'&&tag!=='SELECT'){
+    const panels=['ticker','leftBar','rightBar','subCharts','controls'];
+    togglePanel(panels[parseInt(e.key)-1]);
+    return;
+  }
   if(eraMode){
     if(e.key==='Escape'){$('eraOverlay').classList.remove('show');eraMode=false;}
     if(e.key==='ArrowRight'&&eraIdx<D.eras.length-1) showEra(eraIdx+1);
@@ -1425,6 +1596,9 @@ buildStats();
 buildEvents();
 buildBdayPopup();
 updateUI();
+updateTogglePositions();
+restorePanelState();
+window.addEventListener('resize',()=>{updateTogglePositions();});
 requestAnimationFrame(mainLoop);
 </script>
 </body>
