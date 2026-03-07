@@ -646,12 +646,17 @@ function updateTogglePositions(){
   const sR=subW.getBoundingClientRect();
   const st=document.getElementById('togSub');
   st.style.left=(sR.left+sR.width/2-20)+'px';
-  st.style.top=(sR.top-1)+'px';
   // Controls toggle: centered at top edge of controls
   const cR=ctrl.getBoundingClientRect();
   const ct=document.getElementById('togControls');
   ct.style.left=(cR.left+cR.width/2-20)+'px';
-  ct.style.top=Math.max(lR.top,(panelState.controls?cR.top-1:cR.top))+'px';
+  // Stack bottom toggles so they never overlap or go off-screen
+  const ctrlTop=panelState.controls?cR.top-1:cR.top;
+  ct.style.top=Math.min(ctrlTop, window.innerHeight-16)+'px';
+  const ctrlBtnTop=parseFloat(ct.style.top);
+  const subTop=panelState.subCharts?sR.top-1:sR.top;
+  // If sub toggle would overlap or be below controls toggle, stack it above
+  st.style.top=Math.min(subTop, ctrlBtnTop-18)+'px';
 }
 function restorePanelState(){
   try{
