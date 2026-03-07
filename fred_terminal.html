@@ -127,26 +127,27 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .ev-yr{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}
 
 /* Event Impact Panel */
-.ev-impact{display:none;margin-top:8px;padding:10px 12px;background:var(--s2);
-  border:1px solid var(--border2);border-radius:6px}
+.ev-impact{display:none;margin-top:8px;padding:8px 8px;background:var(--s2);
+  border:1px solid var(--border2);border-radius:6px;overflow:hidden}
 .ev-impact.show{display:block}
 .ev-impact-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
   color:var(--accent);margin-bottom:2px;display:flex;align-items:center;gap:6px}
 .ev-impact-date{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);
-  margin-bottom:8px}
-.ev-impact-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10px;
+  margin-bottom:6px}
+.ev-impact-row{padding:3px 0;font-size:9px;
   border-bottom:1px solid rgba(255,255,255,.02)}
 .ev-impact-row:last-child{border-bottom:none}
-.ev-impact-name{color:var(--dim);flex:1;font-size:9px}
-.ev-impact-before{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);
-  min-width:52px;text-align:right}
-.ev-impact-arrow{color:var(--dim);font-size:9px;flex-shrink:0}
-.ev-impact-after{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
-  min-width:52px;text-align:right}
-.ev-impact-chg{font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 4px;
-  border-radius:2px;min-width:44px;text-align:right;flex-shrink:0}
+.ev-impact-line1{display:flex;align-items:center;gap:4px}
+.ev-impact-name{color:var(--dim);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:1;min-width:0}
+.ev-impact-chg{font-family:'JetBrains Mono',monospace;font-size:8px;padding:1px 3px;
+  border-radius:2px;flex-shrink:0;white-space:nowrap}
 .ev-impact-chg.up{color:var(--green);background:rgba(34,197,94,.08)}
 .ev-impact-chg.down{color:var(--red);background:rgba(239,68,68,.08)}
+.ev-impact-line2{display:flex;align-items:center;gap:3px;padding-left:10px;margin-top:1px}
+.ev-impact-before{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted)}
+.ev-impact-arrow{color:var(--dim);font-size:7px}
+.ev-impact-after{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600}
 .ev-impact-tabs{display:flex;gap:2px;margin-bottom:8px}
 .ev-impact-tab{font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 7px;
   border-radius:3px;cursor:pointer;color:var(--dim);transition:all .12s;
@@ -1353,12 +1354,12 @@ function renderImpactRows(ei){
     const cls=diff>=0?'up':'down';
     const row=document.createElement('div');
     row.className='ev-impact-row';
-    row.innerHTML=`<span class="ev-impact-dot" style="width:6px;height:6px;border-radius:50%;background:${D.series[k].color};flex-shrink:0"></span>
+    row.innerHTML=`<div class="ev-impact-line1"><span class="ev-impact-dot" style="width:6px;height:6px;border-radius:50%;background:${D.series[k].color};flex-shrink:0"></span>
       <span class="ev-impact-name">${D.series[k].short}</span>
-      <span class="ev-impact-before">${fmtVal(k,at)}</span>
+      <span class="ev-impact-chg ${cls}">${sign}${diff.toFixed(1)}</span></div>
+      <div class="ev-impact-line2"><span class="ev-impact-before">${fmtVal(k,at)}</span>
       <span class="ev-impact-arrow">\u2192</span>
-      <span class="ev-impact-after" style="color:${D.series[k].color}">${fmtVal(k,after)}</span>
-      <span class="ev-impact-chg ${cls}">${sign}${diff.toFixed(1)}</span>`;
+      <span class="ev-impact-after" style="color:${D.series[k].color}">${fmtVal(k,after)}</span></div>`;
     rows.appendChild(row);
   });
 }
