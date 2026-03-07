@@ -65,6 +65,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .main-chart{grid-column:2;grid-row:1;border-radius:0}
 .sub-charts{grid-column:2;grid-row:2;display:grid;grid-template-columns:1fr 1fr;
   overflow:hidden;transition:opacity .3s,filter .3s,transform .35s;transform-origin:bottom center}
+.sub-charts.three-col{grid-template-columns:1fr 1fr 1fr}
 @media(max-width:900px){.sub-charts{grid-column:1}}
 .sub-charts .panel:first-child{border-right:none}
 
@@ -506,6 +507,10 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <div class="panel-header" id="sentChips"></div>
       <div class="canvas-wrap" id="sentWrap"><canvas id="sentCanvas"></canvas></div>
     </div>
+    <div class="panel" id="investChartPanel" style="display:none">
+      <div class="panel-header"><span class="chip active" style="border-color:var(--accent);color:var(--accent)">Investment Growth</span></div>
+      <div class="canvas-wrap" id="investChartWrap"><canvas id="investChartCanvas"></canvas></div>
+    </div>
   </div>
 
   <!-- Controls -->
@@ -522,7 +527,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
     <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v1.04</span>
+    <span class="version">v1.05</span>
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
       <span class="kbd">N</span><span class="kbd">E</span>
@@ -668,22 +673,24 @@ const mainCanvas=$('mainCanvas'), mainCtx=mainCanvas.getContext('2d');
 const mainWrap=$('mainWrap'), mainTT=$('mainTT');
 const hCanvas=$('housingCanvas'), hCtx=hCanvas.getContext('2d'), hWrap=$('housingWrap');
 const sCanvas=$('sentCanvas'), sCtx=sCanvas.getContext('2d'), sWrap=$('sentWrap');
+const iCanvas=$('investChartCanvas'), iCtx=iCanvas.getContext('2d'), iWrap=$('investChartWrap');
 
 // Canvas sizes
-let mW=0,mH=0,hW=0,hH=0,sW=0,sH=0;
+let mW=0,mH=0,hW=0,hH=0,sW=0,sH=0,iW=0,iH=0;
 function resizeAll(){
-  [[mainCanvas,mainWrap,'m'],[hCanvas,hWrap,'h'],[sCanvas,sWrap,'s']].forEach(([cv,wr,k])=>{
+  [[mainCanvas,mainWrap,'m'],[hCanvas,hWrap,'h'],[sCanvas,sWrap,'s'],[iCanvas,iWrap,'i']].forEach(([cv,wr,k])=>{
     const r=wr.getBoundingClientRect(), dpr=devicePixelRatio||1;
     const w=r.width, h=r.height;
     cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
     cv.style.width=w+'px'; cv.style.height=h+'px';
     cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
-    if(k==='m'){mW=w;mH=h} else if(k==='h'){hW=w;hH=h} else{sW=w;sH=h}
+    if(k==='m'){mW=w;mH=h} else if(k==='h'){hW=w;hH=h} else if(k==='s'){sW=w;sH=h} else{iW=w;iH=h}
   });
 }
 new ResizeObserver(resizeAll).observe(mainWrap);
 new ResizeObserver(resizeAll).observe(hWrap);
 new ResizeObserver(resizeAll).observe(sWrap);
+new ResizeObserver(resizeAll).observe(iWrap);
 
 // ════════════════════════════════════════════════════════
 // HELPERS
@@ -873,6 +880,159 @@ function updateInvestPanel(){
       <span class="invest-val" style="color:${r.vehicle.color}">$${formatDollar(r.val)}</span>
       <span class="invest-ret ${cls}">${sign}${r.ret>=1000?formatDollar(r.ret)+'%':r.ret.toFixed(0)+'%'}</span>`;
     rows.appendChild(row);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// INVESTMENT GROWTH CHART
+// ════════════════════════════════════════════════════════
+function drawInvestChart(cx,w,h){
+  if(w<10||h<10||!investMode)return;
+  cx.clearRect(0,0,w,h);
+  const start=Math.max(0,investStartIdx);
+  if(idx<=start)return;
+  const amt=investAmount;
+  const isRec=investType==='recurring';
+  const intv=investInterval;
+
+  // Compute value at each index from start to idx using incremental method
+  // For each vehicle, build an array of values
+  const series=INVEST_VEHICLES.map(v=>{
+    const vals=new Float64Array(idx-start+1);
+    if(v.key==='sp500'){
+      // S&P 500 with 2% dividend reinvestment
+      let cumVal=amt;
+      vals[0]=amt;
+      for(let t=start+1;t<=idx;t++){
+        const prev=D.series.sp500.data[t-1], cur=D.series.sp500.data[t];
+        if(prev>0&&cur>0){
+          cumVal*=(cur/prev)*Math.pow(1.02,1/12);
+        }
+        // DCA contribution at this step?
+        if(isRec&&t>start&&(t-start)%intv===0) cumVal+=amt;
+        vals[t-start]=cumVal;
+      }
+    } else if(v.key==='gs10'){
+      // 10Y Bonds: compound at monthly yield
+      let cumVal=amt;
+      vals[0]=amt;
+      for(let t=start+1;t<=idx;t++){
+        const rate=(D.series.gs10.data[t-1]||0)/100/12;
+        cumVal*=(1+rate);
+        if(isRec&&t>start&&(t-start)%intv===0) cumVal+=amt;
+        vals[t-start]=cumVal;
+      }
+    } else if(v.key==='case_shiller'){
+      // Real Estate: price appreciation + 4.5% rent yield
+      let cumVal=amt;
+      vals[0]=amt;
+      for(let t=start+1;t<=idx;t++){
+        const prev=D.series.case_shiller.data[t-1], cur=D.series.case_shiller.data[t];
+        if(prev>0&&cur>0){
+          cumVal*=(cur/prev)*Math.pow(1.045,1/12);
+        } else {
+          cumVal*=Math.pow(1.045,1/12);
+        }
+        if(isRec&&t>start&&(t-start)%intv===0) cumVal+=amt;
+        vals[t-start]=cumVal;
+      }
+    } else {
+      // Cash/Savings: 65% of fed funds
+      let cumVal=amt;
+      vals[0]=amt;
+      for(let t=start+1;t<=idx;t++){
+        const rate=(D.series.fed_funds.data[t-1]||0)*0.65/100/12;
+        cumVal*=(1+rate);
+        if(isRec&&t>start&&(t-start)%intv===0) cumVal+=amt;
+        vals[t-start]=cumVal;
+      }
+    }
+    return{vehicle:v, vals};
+  });
+
+  // Find global min/max for Y scale
+  let yMin=Infinity, yMax=-Infinity;
+  series.forEach(s=>{
+    for(let i=0;i<s.vals.length;i++){
+      if(s.vals[i]<yMin)yMin=s.vals[i];
+      if(s.vals[i]>yMax)yMax=s.vals[i];
+    }
+  });
+  const yPad=(yMax-yMin)*0.1||1;
+  yMin-=yPad; yMax+=yPad;
+  if(yMin<0)yMin=0;
+
+  const P={t:20,r:60,b:22,l:14};
+  const pw=w-P.l-P.r, ph=h-P.t-P.b;
+  const len=idx-start+1;
+  function xFor(i){return P.l+(i/(len-1||1))*pw;}
+  function yFor(v){return P.t+ph-((v-yMin)/(yMax-yMin))*ph;}
+
+  // Grid lines
+  cx.strokeStyle='rgba(255,255,255,.03)';cx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=P.t+(ph/4)*i;
+    cx.beginPath();cx.moveTo(P.l,y);cx.lineTo(P.l+pw,y);cx.stroke();
+  }
+  // Y axis labels (right side, dollar values)
+  cx.font='9px "JetBrains Mono",monospace';
+  cx.fillStyle='rgba(255,255,255,.2)';
+  cx.textAlign='left';cx.textBaseline='middle';
+  for(let i=0;i<=4;i++){
+    const y=P.t+(ph/4)*i;
+    const v=yMax-((yMax-yMin)/4)*i;
+    cx.fillText('$'+formatDollar(v),P.l+pw+6,y);
+  }
+
+  // Time axis labels
+  cx.textAlign='center';cx.textBaseline='top';
+  const step=Math.max(1,Math.floor(len/5));
+  for(let i=0;i<len;i+=step){
+    const mi=start+i;
+    if(mi<D.months.length){
+      const m=D.months[mi];
+      cx.fillText(m.year.toString(),xFor(i),P.t+ph+4);
+    }
+  }
+
+  // Baseline (initial amount)
+  cx.strokeStyle='rgba(255,255,255,.08)';cx.setLineDash([4,4]);
+  cx.beginPath();cx.moveTo(P.l,yFor(amt));cx.lineTo(P.l+pw,yFor(amt));cx.stroke();
+  cx.setLineDash([]);
+
+  // Draw investment lines
+  series.forEach(s=>{
+    // Area fill
+    cx.beginPath();cx.moveTo(xFor(0),yFor(s.vals[0]));
+    for(let i=1;i<len;i++) cx.lineTo(xFor(i),yFor(s.vals[i]));
+    cx.lineTo(xFor(len-1),P.t+ph);cx.lineTo(xFor(0),P.t+ph);cx.closePath();
+    const ag=cx.createLinearGradient(0,P.t,0,P.t+ph);
+    ag.addColorStop(0,s.vehicle.color+'15');ag.addColorStop(1,s.vehicle.color+'02');
+    cx.fillStyle=ag;cx.fill();
+
+    // Line
+    cx.beginPath();cx.moveTo(xFor(0),yFor(s.vals[0]));
+    for(let i=1;i<len;i++) cx.lineTo(xFor(i),yFor(s.vals[i]));
+    cx.strokeStyle=s.vehicle.color;cx.lineWidth=1.5;cx.stroke();
+
+    // End dot + label
+    const lastVal=s.vals[len-1];
+    const ex=xFor(len-1), ey=yFor(lastVal);
+    cx.beginPath();cx.arc(ex,ey,3,0,Math.PI*2);
+    cx.fillStyle=s.vehicle.color;cx.fill();
+    cx.strokeStyle='rgba(0,0,0,.3)';cx.lineWidth=1;cx.stroke();
+  });
+
+  // Legend in top-left
+  cx.font='8px "JetBrains Mono",monospace';
+  cx.textAlign='left';cx.textBaseline='middle';
+  series.forEach((s,i)=>{
+    const lx=P.l+6, ly=P.t+8+i*12;
+    cx.fillStyle=s.vehicle.color;
+    cx.beginPath();cx.arc(lx,ly,3,0,Math.PI*2);cx.fill();
+    cx.fillStyle=s.vehicle.color;
+    const lastVal=s.vals[len-1];
+    cx.fillText(s.vehicle.name+' $'+formatDollar(lastVal),lx+8,ly);
   });
 }
 
@@ -1747,6 +1907,7 @@ function mainLoop(ts){
   drawPanel(mainCtx,mW,mH,PANELS.main,true,true);
   drawPanel(hCtx,hW,hH,PANELS.housing,true,selectedEvent>=0);
   drawPanel(sCtx,sW,sH,PANELS.sent,true,selectedEvent>=0);
+  if(investMode) drawInvestChart(iCtx,iW,iH);
   requestAnimationFrame(mainLoop);
 }
 
@@ -1800,6 +1961,9 @@ investBtn.addEventListener('click',()=>{
   investMode=!investMode;
   investBtn.classList.toggle('active',investMode);
   $('investSection').style.display=investMode?'':'none';
+  $('investChartPanel').style.display=investMode?'':'none';
+  $('subChartsWrap').classList.toggle('three-col',investMode);
+  if(investMode)setTimeout(resizeAll,50);
   if(investMode&&birthdayMode&&birthdayIdx>=0){investStartIdx=birthdayIdx;}
   updateUI();
 });
@@ -1811,6 +1975,8 @@ $('investSetBday').addEventListener('click',()=>{
 $('investClose').addEventListener('click',()=>{
   investMode=false;investBtn.classList.remove('active');
   $('investSection').style.display='none';
+  $('investChartPanel').style.display='none';
+  $('subChartsWrap').classList.remove('three-col');
 });
 $('investAmount').addEventListener('input',e=>{
   const v=parseFloat(e.target.value);
