@@ -2159,21 +2159,60 @@ $('vmMag').addEventListener('click',()=>setViewMode('magnify'));
 $('zoomIn').addEventListener('click',()=>adjustZoom(0.1));
 $('zoomOut').addEventListener('click',()=>adjustZoom(-0.1));
 
-// Magnifier — canvas-to-canvas lens
+// Magnifier — full-screen lens (canvas + DOM)
 const MAG_SIZE=160, MAG_ZOOM=2.5;
 const magCanvas=$('magCanvas'), magCtx=magCanvas.getContext('2d');
-let magMX=0, magMY=0;
+
+// DOM magnification layer — clones the body at MAG_ZOOM scale
+let magDOMLayer=null, magDOMClone=null, lastCloneTime=0;
+
+function buildMagDOMLayer(){
+  if(!magDOMLayer){
+    magDOMLayer=document.createElement('div');
+    magDOMLayer.style.cssText='position:absolute;top:0;left:0;width:'+MAG_SIZE+'px;height:'+MAG_SIZE+'px;overflow:hidden;border-radius:50%;display:none;';
+    $('magnifier').appendChild(magDOMLayer);
+  }
+}
+
+function refreshMagClone(){
+  const clone=document.body.cloneNode(true);
+  // Remove magnifier + scripts from clone
+  const mc=clone.querySelector('#magnifier'); if(mc) mc.remove();
+  clone.querySelectorAll('script').forEach(s=>s.remove());
+  // Copy canvas content into clone's canvas elements
+  const origCanvases=document.body.querySelectorAll('canvas');
+  const cloneCanvases=clone.querySelectorAll('canvas');
+  origCanvases.forEach((oc,i)=>{
+    if(cloneCanvases[i]){
+      try{
+        const ctx=cloneCanvases[i].getContext('2d');
+        cloneCanvases[i].width=oc.width; cloneCanvases[i].height=oc.height;
+        cloneCanvases[i].style.cssText=oc.style.cssText;
+        ctx.drawImage(oc,0,0);
+      }catch(e){}
+    }
+  });
+  clone.style.cssText='position:absolute;width:'+window.innerWidth+'px;height:'+window.innerHeight+'px;transform:scale('+MAG_ZOOM+');transform-origin:0 0;pointer-events:none;margin:0;overflow:hidden;';
+  magDOMLayer.innerHTML='';
+  magDOMLayer.appendChild(clone);
+  magDOMClone=clone;
+  lastCloneTime=Date.now();
+}
 
 document.addEventListener('mousemove',e=>{
   if(viewMode!=='magnify')return;
-  magMX=e.clientX; magMY=e.clientY;
   const mag=$('magnifier');
+  mag.style.display='block';
+  mag.style.left=(e.clientX-MAG_SIZE/2)+'px';
+  mag.style.top=(e.clientY-MAG_SIZE/2)+'px';
+
   const el=document.elementFromPoint(e.clientX,e.clientY);
   const cv=el&&el.tagName==='CANVAS'?el:(el?el.closest&&el.closest('canvas'):null);
+
   if(cv){
-    mag.style.display='block';
-    mag.style.left=(e.clientX-MAG_SIZE/2)+'px';
-    mag.style.top=(e.clientY-MAG_SIZE/2)+'px';
+    // Canvas magnification — sample directly
+    magCanvas.style.display='block';
+    if(magDOMLayer) magDOMLayer.style.display='none';
     const cr=cv.getBoundingClientRect();
     const sx=e.clientX-cr.left, sy=e.clientY-cr.top;
     const sampleR=MAG_SIZE/(2*MAG_ZOOM);
@@ -2189,7 +2228,6 @@ document.addEventListener('mousemove',e=>{
       (sx-sampleR)*dpr,(sy-sampleR)*dpr,
       sampleR*2*dpr,sampleR*2*dpr,
       0,0,MAG_SIZE,MAG_SIZE);
-    // Crosshair
     magCtx.strokeStyle='rgba(88,166,255,.3)';
     magCtx.lineWidth=0.5;
     magCtx.beginPath();
@@ -2198,7 +2236,15 @@ document.addEventListener('mousemove',e=>{
     magCtx.stroke();
     magCtx.restore();
   }else{
-    mag.style.display='none';
+    // DOM magnification — scaled body clone
+    magCanvas.style.display='none';
+    buildMagDOMLayer();
+    if(Date.now()-lastCloneTime>200) refreshMagClone();
+    if(magDOMClone){
+      magDOMLayer.style.display='block';
+      magDOMClone.style.left=(MAG_SIZE/2-e.clientX*MAG_ZOOM)+'px';
+      magDOMClone.style.top=(MAG_SIZE/2-e.clientY*MAG_ZOOM)+'px';
+    }
   }
 });
 document.addEventListener('mouseleave',()=>{
