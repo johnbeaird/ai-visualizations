@@ -270,6 +270,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
   background:rgba(10,16,30,.95);color:var(--text);border:1px solid var(--border2);
   white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .left-bar [data-tip]:hover::after{left:0;transform:none;max-width:200px;white-space:normal}
+body.magnify [data-tip]:hover::after{display:none}
 
 /* ── Collapse System ── */
 body.ticker-collapsed{--ticker-h:0px}
@@ -562,9 +563,9 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <button class="vm-btn" id="vmMag">MAG</button>
     </div>
     <div class="zoom-adj" id="zoomAdj" style="display:none">
-      <button id="zoomOut" data-tip="Zoom out (Ctrl+-)">&#8722;</button>
+      <button id="zoomOut" data-tip="Zoom out">&#8722;</button>
       <span class="zlbl" id="zoomLevel">100%</span>
-      <button id="zoomIn" data-tip="Zoom in (Ctrl++)">+</button>
+      <button id="zoomIn" data-tip="Zoom in">+</button>
     </div>
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
@@ -1812,14 +1813,21 @@ function showTT(i, mx, my){
   mainTT.innerHTML=h;
   mainTT.classList.add('show');
   const tw=mainTT.offsetWidth, th=mainTT.offsetHeight;
-  let tx=mx+14, ty=my-th/2;
-  if(tx+tw>mW-8) tx=mx-tw-14;
+  let tx, ty;
+  if(viewMode==='magnify'){
+    tx=mx-tw/2;
+    ty=my+MAG_SIZE/2+8;
+    if(tx<4) tx=4; if(tx+tw>mW-4) tx=mW-tw-4;
+    if(ty+th>mH-4){ty=my-MAG_SIZE/2-th-8;}
+  }else{
+    tx=mx+14; ty=my-th/2;
+    if(tx+tw>mW-8) tx=mx-tw-14;
+  }
   if(ty<4) ty=4; if(ty+th>mH-4) ty=mH-th-4;
   mainTT.style.left=tx+'px'; mainTT.style.top=ty+'px';
 }
 
 mainCanvas.addEventListener('mousemove',e=>{
-  if(viewMode==='magnify'){hoverIdx=-1;mainTT.classList.remove('show');return;}
   const r=mainCanvas.getBoundingClientRect();
   const mx=e.clientX-r.left, my=e.clientY-r.top;
   const P={l:50,r:16}; const pw=mW-P.l-P.r;
@@ -2142,7 +2150,7 @@ function setViewMode(mode){
     document.documentElement.style.zoom='';
   }
   if(mode!=='magnify') $('magnifier').style.display='none';
-  if(mode==='magnify'){hoverIdx=-1;mainTT.classList.remove('show');}
+  document.body.classList.toggle('magnify',mode==='magnify');
   resizeAll();
   try{localStorage.setItem('fredViewMode',mode);}catch(e){}
 }
@@ -2255,10 +2263,6 @@ document.addEventListener('mouseleave',()=>{
 
 // Keyboard
 document.addEventListener('keydown',e=>{
-  // Zoom shortcuts
-  if((e.ctrlKey||e.metaKey)&&(e.key==='='||e.key==='+')){e.preventDefault();if(viewMode!=='zoom')setViewMode('zoom');adjustZoom(0.1);return;}
-  if((e.ctrlKey||e.metaKey)&&e.key==='-'){e.preventDefault();if(viewMode!=='zoom')setViewMode('zoom');adjustZoom(-0.1);return;}
-  if((e.ctrlKey||e.metaKey)&&e.key==='0'){e.preventDefault();zoomLevel=1.0;setViewMode('normal');return;}
   // Magnifier toggle
   if(e.key==='m'||e.key==='M'){if(!e.ctrlKey&&!e.metaKey){setViewMode(viewMode==='magnify'?'normal':'magnify');return;}}
   // Panel toggle keys 1-5 (skip when focused on input/select)
