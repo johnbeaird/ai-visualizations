@@ -218,7 +218,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
     <li><a href="#impact"><span class="tnum">07</span> See event impact</a></li>
     <li><a href="#eras"><span class="tnum">08</span> Walk through eras</a></li>
     <li><a href="#sidebar"><span class="tnum">09</span> The sidebar explained</a></li>
-    <li><a href="#keys"><span class="tnum">10</span> Keyboard shortcuts</a></li>
+    <li><a href="#birthday"><span class="tnum">10</span> Birthday mode</a></li>
+    <li><a href="#invest"><span class="tnum">11</span> Investment simulator</a></li>
+    <li><a href="#viewmodes"><span class="tnum">12</span> Zoom &amp; magnifier</a></li>
+    <li><a href="#panels"><span class="tnum">13</span> Show &amp; hide panels</a></li>
+    <li><a href="#keys"><span class="tnum">14</span> Keyboard shortcuts</a></li>
   </ol>
 </div>
 
@@ -540,9 +544,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 10. CORRELATION ═══════ -->
+<!-- ═══════ CORRELATION (sub-section of sidebar) ═══════ -->
 <div class="section" id="correlation">
-  <div class="section-num">10</div>
+  <div class="section-num">09b</div>
   <h2>Reading the correlation grid</h2>
   <p class="desc">The correlation grid shows how strongly two economic indicators move together. It answers the question: <em>"When one number goes up, does the other tend to go up too?"</em></p>
 
@@ -583,9 +587,131 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 11. KEYBOARD ═══════ -->
-<div class="section" id="keys">
+<!-- ═══════ 10. BIRTHDAY ═══════ -->
+<div class="section" id="birthday">
+  <div class="section-num">10</div>
+  <h2>Birthday mode</h2>
+  <p class="desc">Make the data personal. Enter your birthday and the terminal shows what the economy was doing the day you were born &mdash; and every milestone since.</p>
+
+  <div class="mock">
+    <div class="mock-label">Click BDAY in the control bar (or press B)</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="m-mode on">BDAY</div>
+      <span style="font-size:13px;color:var(--dim)">&larr; a popup appears asking for your birth month &amp; year</span>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-content">Click <strong>BDAY</strong> (or press <span class="kbd">B</span>). A small popup appears where you pick your <strong>birth month</strong> and <strong>birth year</strong>.</div></div>
+    <div class="step"><div class="step-content">Click <strong>"Set Birthday"</strong>. The timeline jumps to your birth date. You'll see your <strong>age</strong> displayed in the controls bar as the timeline plays forward.</div></div>
+    <div class="step"><div class="step-content">Vertical <strong>milestone lines</strong> appear on the chart at ages <strong>18, 30, 40, 50, 60, and 65</strong> &mdash; key life moments overlaid on economic history.</div></div>
+    <div class="step"><div class="step-content">Click <strong>BDAY</strong> again (or the &times; button) to clear and return to normal mode.</div></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text"><strong>Try this:</strong> Enter a parent's or grandparent's birthday. Press play and watch the economy through their lifetime &mdash; which recessions did they live through? What were mortgage rates when they bought their first house?</div>
+  </div>
+</div>
+
+<!-- ═══════ 11. INVESTMENT ═══════ -->
+<div class="section" id="invest">
   <div class="section-num">11</div>
+  <h2>Investment simulator</h2>
+  <p class="desc">Ever wondered what $10,000 invested decades ago would be worth today? The simulator shows hypothetical returns across five different investments.</p>
+
+  <div class="mock">
+    <div class="mock-label">Click INVEST in the control bar (or press I)</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="m-mode on">INVEST</div>
+      <span style="font-size:13px;color:var(--dim)">&larr; opens the investment panel in the sidebar</span>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-content">Click <strong>INVEST</strong> (or press <span class="kbd">I</span>). A panel appears in the right sidebar with controls for the simulator.</div></div>
+    <div class="step"><div class="step-content">Set your <strong>starting amount</strong> (default $10,000) and choose a <strong>start year</strong>. If birthday mode is active, you can click <strong>"From Birth"</strong> to start from your birth year.</div></div>
+    <div class="step"><div class="step-content">The simulator calculates returns for five vehicles: <strong>S&amp;P 500</strong>, <strong>10Y Treasuries</strong>, <strong>Savings Account</strong>, <strong>Real Estate</strong> (Case-Shiller), and <strong>Gold</strong>. The best performer is highlighted in <span style="color:var(--green)">green</span>.</div></div>
+    <div class="step"><div class="step-content">A <strong>growth chart</strong> appears below, showing how each investment grew over time as colored lines. Hover to see values at any date.</div></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text"><strong>Combine with Birthday mode:</strong> Enter your birthday, then open the investment simulator and click "From Birth." See what $10,000 invested at your birth would be worth today across different asset classes.</div>
+  </div>
+</div>
+
+<!-- ═══════ 12. VIEW MODES ═══════ -->
+<div class="section" id="viewmodes">
+  <div class="section-num">12</div>
+  <h2>Zoom &amp; magnifier</h2>
+  <p class="desc">The terminal uses small fonts for data density. Three view modes help you read the details.</p>
+
+  <div class="mock">
+    <div class="mock-label">Three view modes — bottom-right of controls bar</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="m-mode on" style="font-size:9px">NORM</div>
+      <div class="m-mode" style="font-size:9px">ZOOM</div>
+      <div class="m-mode" style="font-size:9px">MAG</div>
+      <span style="font-size:12px;color:var(--dim);margin-left:8px">&#8722; <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">100%</span> +</span>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-content"><strong>NORM</strong> &mdash; Default view. No magnification. Best for high-density overview of all data at once.</div></div>
+    <div class="step"><div class="step-content"><strong>ZOOM</strong> &mdash; Scales the entire UI from 75% to 150% using CSS zoom. Click the <strong>+</strong> and <strong>&minus;</strong> buttons (or use <span class="kbd">Ctrl</span><span class="kbd">+</span> / <span class="kbd">Ctrl</span><span class="kbd">&minus;</span>) to adjust. Good for general readability.</div></div>
+    <div class="step"><div class="step-content"><strong>MAG</strong> &mdash; A circular <strong>magnifying lens</strong> follows your mouse cursor, showing a 2.5&times; magnified view of whatever is underneath. Works over charts <em>and</em> all UI elements (sidebars, ticker bar, controls). Press <span class="kbd">M</span> to toggle.</div></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text"><strong>Quick shortcuts:</strong> Press <span class="kbd">M</span> to toggle the magnifier. Use <span class="kbd">Ctrl</span><span class="kbd">+</span> / <span class="kbd">Ctrl</span><span class="kbd">&minus;</span> for zoom. Press <span class="kbd">Ctrl</span><span class="kbd">0</span> to reset back to normal view.</div>
+  </div>
+</div>
+
+<!-- ═══════ 13. PANELS ═══════ -->
+<div class="section" id="panels">
+  <div class="section-num">13</div>
+  <h2>Show &amp; hide panels</h2>
+  <p class="desc">Want more chart space? Collapse any panel to focus on what matters. Five toggle buttons sit at the edges of the screen.</p>
+
+  <div class="mock">
+    <div class="mock-label">Panel toggles — press 1-5 or click the edge buttons</div>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="kbd" style="width:20px;text-align:center">1</span>
+        <span><strong>Ticker bar</strong> (top) &mdash; the scrolling numbers strip</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="kbd" style="width:20px;text-align:center">2</span>
+        <span><strong>Left sidebar</strong> &mdash; correlation grid &amp; key events</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="kbd" style="width:20px;text-align:center">3</span>
+        <span><strong>Right sidebar</strong> &mdash; live values &amp; investment results</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="kbd" style="width:20px;text-align:center">4</span>
+        <span><strong>Sub-charts</strong> (bottom) &mdash; housing &amp; sentiment panels</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="kbd" style="width:20px;text-align:center">5</span>
+        <span><strong>Controls bar</strong> (bottom) &mdash; playback &amp; mode buttons</span>
+      </div>
+    </div>
+  </div>
+
+  <p>Collapsed panels show a small arrow button at the screen edge. <strong>Hover near it</strong> and it glows &mdash; click to expand. Your layout preferences are saved automatically.</p>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text"><strong>Full-screen chart:</strong> Press <span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span> <span class="kbd">4</span> <span class="kbd">5</span> to collapse everything and get a massive chart view. Press them again to bring panels back.</div>
+  </div>
+</div>
+
+<!-- ═══════ 14. KEYBOARD ═══════ -->
+<div class="section" id="keys">
+  <div class="section-num">14</div>
   <h2>Keyboard shortcuts</h2>
   <p class="desc">Power-user moves once you're comfortable.</p>
 
@@ -596,9 +722,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
       <tr><td><span class="kbd">&uarr;</span> <span class="kbd">&darr;</span></td><td>Jump one year forward / back</td></tr>
       <tr><td><span class="kbd">Home</span></td><td>Jump to January 1960</td></tr>
       <tr><td><span class="kbd">End</span></td><td>Jump to the most recent date</td></tr>
-      <tr><td><span class="kbd">N</span></td><td>Toggle normalize mode (compare everything on the same scale)</td></tr>
+      <tr><td><span class="kbd">N</span></td><td>Toggle normalize mode (compare all on the same scale)</td></tr>
       <tr><td><span class="kbd">E</span></td><td>Open / close the Eras guide</td></tr>
-      <tr><td><span class="kbd">Esc</span></td><td>Close the eras overlay, or deselect an event</td></tr>
+      <tr><td><span class="kbd">B</span></td><td>Open / close Birthday mode</td></tr>
+      <tr><td><span class="kbd">I</span></td><td>Open / close Investment simulator</td></tr>
+      <tr><td><span class="kbd">M</span></td><td>Toggle magnifier lens on / off</td></tr>
+      <tr><td><span class="kbd">1</span> &ndash; <span class="kbd">5</span></td><td>Toggle panels: 1=ticker, 2=left, 3=right, 4=sub-charts, 5=controls</td></tr>
+      <tr><td><span class="kbd">Ctrl</span><span class="kbd">+</span> / <span class="kbd">Ctrl</span><span class="kbd">&minus;</span></td><td>Zoom in / out (activates zoom mode)</td></tr>
+      <tr><td><span class="kbd">Ctrl</span><span class="kbd">0</span></td><td>Reset to normal view (100%)</td></tr>
+      <tr><td><span class="kbd">Esc</span></td><td>Close eras overlay, deselect event, or exit birthday mode</td></tr>
     </table>
   </div>
 </div>
@@ -606,7 +738,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
 <!-- ═══════ FIRST THINGS TO TRY ═══════ -->
 <div class="section" id="try">
   <div class="section-num" style="color:var(--green)">Bonus</div>
-  <h2>5 things to try right now</h2>
+  <h2>7 things to try right now</h2>
   <p class="desc">Open the terminal and try these — each takes under 2 minutes.</p>
 
   <div class="steps">
@@ -615,6 +747,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
     <div class="step"><div class="step-content"><strong>Compare inflation fighters.</strong> Turn on just Fed Funds + CPI. Press play from 1960. Watch how every time the orange line (inflation) spikes, the blue line (Fed) chases it up. The 1980 battle is legendary.</div></div>
     <div class="step"><div class="step-content"><strong>See the housing bubble.</strong> Switch to the Housing panel, turn on Case-Shiller. Watch home prices go parabolic 2003-2006, then crash. Compare with today's prices — even higher!</div></div>
     <div class="step"><div class="step-content"><strong>Use ERAS for a guided tour.</strong> Press <span class="kbd">E</span>, then arrow through all 11 eras. Click "Jump to Era" on any that interest you.</div></div>
+    <div class="step"><div class="step-content"><strong>See your life in data.</strong> Press <span class="kbd">B</span> and enter your birthday. Press play — watch your age tick up as the economy evolves around you. Then press <span class="kbd">I</span> to see what $10K invested at birth would be worth today.</div></div>
+    <div class="step"><div class="step-content"><strong>Use the magnifier on small text.</strong> Press <span class="kbd">M</span> and hover over the chart axes, sidebar values, or the correlation grid. The 2.5&times; lens makes every tiny number readable.</div></div>
   </div>
 </div>
 

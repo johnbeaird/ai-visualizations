@@ -1819,6 +1819,7 @@ function showTT(i, mx, my){
 }
 
 mainCanvas.addEventListener('mousemove',e=>{
+  if(viewMode==='magnify'){hoverIdx=-1;mainTT.classList.remove('show');return;}
   const r=mainCanvas.getBoundingClientRect();
   const mx=e.clientX-r.left, my=e.clientY-r.top;
   const P={l:50,r:16}; const pw=mW-P.l-P.r;
@@ -2141,6 +2142,7 @@ function setViewMode(mode){
     document.documentElement.style.zoom='';
   }
   if(mode!=='magnify') $('magnifier').style.display='none';
+  if(mode==='magnify'){hoverIdx=-1;mainTT.classList.remove('show');}
   resizeAll();
   try{localStorage.setItem('fredViewMode',mode);}catch(e){}
 }
