@@ -268,6 +268,25 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
 .zoom-adj button:hover{border-color:var(--accent)}
 .zoom-adj .zlbl{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--muted);
   min-width:24px;text-align:center}
+/* Data zoom controls */
+.zoom-indicator{display:none;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;
+  background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);flex-shrink:0;
+  animation:zpulse 2s ease-in-out infinite}
+@keyframes zpulse{0%,100%{border-color:rgba(88,166,255,.25)}50%{border-color:rgba(88,166,255,.5)}}
+.zoom-indicator .zr-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);
+  white-space:nowrap}
+.zoom-indicator .zr-close{font-size:12px;color:var(--muted);cursor:pointer;line-height:1;padding:0 2px}
+.zoom-indicator .zr-close:hover{color:var(--red)}
+.zoom-window-ctrl{display:none;align-items:center;gap:4px;flex-shrink:0}
+.zoom-window-ctrl select{font-family:'JetBrains Mono',monospace;font-size:8px;
+  background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:3px;
+  padding:2px 4px;cursor:pointer}
+.zoom-window-ctrl select:hover{border-color:var(--accent)}
+.zoom-window-ctrl .zw-label{font-size:8px;color:var(--dim)}
+.zoom-window-ctrl .zw-reset{font-family:'JetBrains Mono',monospace;font-size:8px;
+  padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:transparent;
+  color:var(--dim);cursor:pointer;transition:all .12s}
+.zoom-window-ctrl .zw-reset:hover{color:var(--accent);border-color:var(--accent)}
 #magnifier{position:fixed;width:160px;height:160px;border-radius:50%;overflow:hidden;
   pointer-events:none;z-index:9999;border:2px solid var(--accent);
   box-shadow:0 0 24px rgba(88,166,255,.35),0 4px 12px rgba(0,0,0,.5);display:none}
@@ -337,9 +356,9 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
 @media(max-width:900px){.toggle-overlay{display:none}}
 
 /* ── Birthday Mode ── */
-.bday-popup{position:absolute;bottom:calc(100% + 8px);background:var(--s2);
+.bday-popup{position:fixed;background:var(--s2);
   border:1px solid var(--border2);border-radius:8px;padding:12px 16px;
-  z-index:40;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:200px}
+  z-index:10000;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:200px}
 .bday-popup.show{display:block}
 .bday-popup-title{font-family:'JetBrains Mono',monospace;font-size:10px;
   font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;
@@ -491,6 +510,8 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <div class="side-label" data-tip="Click any event to jump there and see its impact">Key Events <span class="sec-toggle" id="eventsToggle" data-tip="Show/hide event list">&#9660;</span></div>
       <div id="eventsBody">
       <div id="eventList"></div>
+      <div class="side-label" style="margin-top:10px" data-tip="Click a recession to zoom into that period">Recessions <span class="sec-toggle" id="recToggle">&#9660;</span></div>
+      <div id="recessionList"></div>
       <div class="ev-impact" id="evImpact">
         <div class="ev-impact-title">
           <span id="evImpactIcon"></span>
@@ -561,6 +582,17 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <input type="range" class="scrub" id="scrubber" min="0" max="791" value="791" title="Drag to scrub through time">
     <div class="ctrl-speed" id="speedBtn" data-tip="Click to change playback speed">1&times;</div>
     <div class="ctrl-date" id="dateLabel" data-tip="Current date in the timeline">Dec 2025</div>
+    <div class="zoom-indicator" id="zoomIndicator">
+      <span class="zr-label" id="zoomRangeLabel"></span>
+      <span class="zr-close" id="zoomResetBtn" data-tip="Return to full timeline (Esc)">&times;</span>
+    </div>
+    <div class="zoom-window-ctrl" id="zoomWindowCtrl">
+      <span class="zw-label">Before</span>
+      <select id="zoomBefore"><option value="3">3mo</option><option value="6">6mo</option><option value="12" selected>12mo</option><option value="24">24mo</option><option value="36">36mo</option></select>
+      <span class="zw-label">After</span>
+      <select id="zoomAfter"><option value="3">3mo</option><option value="6">6mo</option><option value="12" selected>12mo</option><option value="24">24mo</option><option value="36">36mo</option></select>
+      <button class="zw-reset" id="zoomResetInline" data-tip="Return to full timeline">&#8634; FULL</button>
+    </div>
     <div class="ev-elapsed" id="evElapsed"></div>
     <div class="bday-age" id="bdayAge"></div>
     <button class="cb mode" id="normBtn" data-tip="Normalize: compare all lines on the same scale (N)">NORM</button>
@@ -568,7 +600,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
     <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v1.07</span>
+    <span class="version">v2.01</span>
     <div class="view-mode" data-tip="View: Normal / Zoom (scale UI) / Magnify (lens on charts)">
       <button class="vm-btn active" id="vmNorm">NORM</button>
       <button class="vm-btn" id="vmZoom">ZOOM</button>
@@ -586,18 +618,6 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <span class="kbd">1-5 Panels</span>
     </div>
     <div class="ctrl-scroll-arrow right" id="ctrlScrollR">&#9654;</div>
-    <!-- Birthday popup -->
-    <div class="bday-popup" id="bdayPopup">
-      <div class="bday-popup-title">Your Birthday</div>
-      <div class="bday-popup-row">
-        <select id="bdayMonth" class="bday-select"></select>
-        <select id="bdayYear" class="bday-select"></select>
-      </div>
-      <div class="bday-popup-actions">
-        <button class="bday-set" id="bdaySet">Set</button>
-        <button class="bday-clear" id="bdayClear">Clear</button>
-      </div>
-    </div>
   </div>
 
   <!-- Right sidebar: Live Values only -->
@@ -606,6 +626,18 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <div class="side-label" data-tip="Current values for each visible data series">Live Values</div>
       <div id="statCards"></div>
     </div>
+  </div>
+</div>
+<!-- Birthday popup (body-level to escape all overflow/stacking contexts) -->
+<div class="bday-popup" id="bdayPopup">
+  <div class="bday-popup-title">Your Birthday</div>
+  <div class="bday-popup-row">
+    <select id="bdayMonth" class="bday-select"></select>
+    <select id="bdayYear" class="bday-select"></select>
+  </div>
+  <div class="bday-popup-actions">
+    <button class="bday-set" id="bdaySet">Set</button>
+    <button class="bday-clear" id="bdayClear">Clear</button>
   </div>
 </div>
 <div id="magnifier"><canvas id="magCanvas" width="160" height="160"></canvas></div>
@@ -640,6 +672,14 @@ let birthdayIdx = -1, birthdayMode = false, bdayPopupOpen = false;
 let investMode = false, investStartIdx = 0, investAmount = 10000;
 let investType = 'lump', investInterval = 12;
 let viewMode = 'normal', zoomLevel = 1.0;
+// Data zoom state
+let dataZoomed=false;
+let viewStart=0, viewEnd=TOTAL-1;
+let targetStart=0, targetEnd=TOTAL-1;
+let zoomAnimating=false, zoomAnimStart=0, zoomAnimDuration=400;
+let zoomAnimFromStart=0, zoomAnimFromEnd=TOTAL-1;
+let zoomBeforeMonths=12, zoomAfterMonths=12;
+let zoomEventIdx=-1, zoomEventType='', zoomRecessionIdx=-1;
 
 // ════════════════════════════════════════════════════════
 // PANEL COLLAPSE SYSTEM
@@ -1417,8 +1457,14 @@ function buildEvents(){
     d.addEventListener('click',()=>{
       const ei=D.months.findIndex(m=>m.year===ev.y&&m.month===ev.m);
       if(ei>=0){idx=ei;scrubber.value=idx;}
-      if(selectedEvent===i){selectedEvent=-1;$('evImpact').classList.remove('show');}
-      else{selectedEvent=i;showEventImpact(i);}
+      if(selectedEvent===i){
+        selectedEvent=-1;$('evImpact').classList.remove('show');
+        unzoomTimeline();
+      }else{
+        selectedEvent=i;showEventImpact(i);
+        zoomRecessionIdx=-1;
+        if(ei>=0)zoomToPointEvent(ei);
+      }
       updateUI();
     });
     el.appendChild(d);
@@ -1588,13 +1634,15 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   if(dualAxis) P.r=50;
 
   const pw=w-P.l-P.r, ph=h-P.t-P.b;
-  function xFor(i){return P.l+(i/(TOTAL-1))*pw;}
+  function xFor(i){return P.l+((i-viewStart)/(viewEnd-viewStart))*pw;}
 
   // Compute Y ranges
   function rangeFor(ks){
     let mn=Infinity,mx=-Infinity;
+    const scanStart=dataZoomed?viewStart:0;
+    const scanEnd=Math.min(idx,viewEnd);
     ks.forEach(k=>{
-      for(let i=0;i<=idx;i++){
+      for(let i=scanStart;i<=scanEnd;i++){
         const v=getVal(k,i);
         if(v<mn)mn=v; if(v>mx)mx=v;
       }
@@ -1623,7 +1671,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   if(showRecessions){
     D.recessions.forEach(rec=>{
       const si=midx(rec.s), ei=midx(rec.e);
-      if(si<0||ei<0||si>idx) return;
+      if(si<0||ei<0||si>idx||ei<viewStart||si>viewEnd) return;
       const x1=xFor(si), x2=xFor(Math.min(ei,idx));
       cx.fillStyle='rgba(239,68,68,.05)';
       cx.fillRect(x1,P.t,x2-x1,ph);
@@ -1688,7 +1736,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     const birthOffset=birthdayIdx<0?Math.abs(birthdayIdx):0;
     MILESTONES.forEach(ms=>{
       const mi=birthI+((ms.age*12)-birthOffset);
-      if(mi<0||mi>=TOTAL||mi>idx)return;
+      if(mi<0||mi>=TOTAL||mi>idx||mi<viewStart||mi>viewEnd)return;
       const x=xFor(mi);
       cx.save();
       cx.strokeStyle='rgba(63,185,80,.25)';cx.lineWidth=1;
@@ -1716,7 +1764,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   }
 
   // Investment start marker (main chart only)
-  if(investMode&&investStartIdx>=0&&investStartIdx<=idx&&showRecessions){
+  if(investMode&&investStartIdx>=0&&investStartIdx<=idx&&showRecessions&&investStartIdx>=viewStart&&investStartIdx<=viewEnd){
     const ix=xFor(investStartIdx);
     cx.save();
     cx.strokeStyle='rgba(88,166,255,.35)';cx.lineWidth=1;
@@ -1734,6 +1782,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     cx.save();
     for(let ci=investStartIdx+investInterval;ci<=idx;ci+=investInterval){
       if(ci>=TOTAL)break;
+      if(ci<viewStart||ci>viewEnd)continue;
       const cx2=xFor(ci);
       cx.strokeStyle='rgba(88,166,255,.18)';cx.lineWidth=1;
       cx.setLineDash([2,3]);
@@ -1747,6 +1796,8 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   }
 
   // Draw series
+  const drawStart=Math.max(0,viewStart-1);
+  const drawEnd=Math.min(idx,viewEnd+1);
   vis.forEach(k=>{
     const s=D.series[k];
     const yFn=yFor(k);
@@ -1754,10 +1805,10 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
 
     // Area
     cx.beginPath();
-    cx.moveTo(xFor(0),yFn(getVal(k,0)));
-    for(let i=1;i<=idx;i++) cx.lineTo(xFor(i),yFn(getVal(k,i)));
-    cx.lineTo(xFor(idx),P.t+ph);
-    cx.lineTo(xFor(0),P.t+ph);
+    cx.moveTo(xFor(drawStart),yFn(getVal(k,drawStart)));
+    for(let i=drawStart+1;i<=drawEnd;i++) cx.lineTo(xFor(i),yFn(getVal(k,i)));
+    cx.lineTo(xFor(drawEnd),P.t+ph);
+    cx.lineTo(xFor(drawStart),P.t+ph);
     cx.closePath();
     const ag=cx.createLinearGradient(0,P.t,0,P.t+ph);
     ag.addColorStop(0,s.color+'12');
@@ -1767,8 +1818,8 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
 
     // Line
     cx.beginPath();
-    cx.moveTo(xFor(0),yFn(getVal(k,0)));
-    for(let i=1;i<=idx;i++) cx.lineTo(xFor(i),yFn(getVal(k,i)));
+    cx.moveTo(xFor(drawStart),yFn(getVal(k,drawStart)));
+    for(let i=drawStart+1;i<=drawEnd;i++) cx.lineTo(xFor(i),yFn(getVal(k,i)));
     cx.strokeStyle=s.color;
     cx.lineWidth=k==='sp500'?1.5:1.8;
     cx.globalAlpha=0.85;
@@ -1789,7 +1840,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   if(showEvents){
     D.events.forEach((ev,evI)=>{
       const i=D.months.findIndex(m=>m.year===ev.y&&m.month===ev.m);
-      if(i<0||i>idx) return;
+      if(i<0||i>idx||i<viewStart||i>viewEnd) return;
       const x=xFor(i);
       const isSelected=selectedEvent===evI;
 
@@ -1849,14 +1900,42 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     });
   }
 
-  // X labels
+  // X labels — adaptive to zoom range
   cx.font=cFont(9);
   cx.fillStyle='rgba(255,255,255,.15)';
   cx.textAlign='center';cx.textBaseline='top';
-  [1960,1970,1980,1990,2000,2010,2020].forEach(yr=>{
-    const i=D.months.findIndex(m=>m.year===yr&&m.month===1);
-    if(i>=0) cx.fillText(yr,xFor(i),h-P.b+6);
-  });
+  const rangeLen=viewEnd-viewStart;
+  if(rangeLen<=36){
+    // Monthly labels when zoomed tight
+    cx.font=cFont(8);
+    for(let i=viewStart;i<=Math.min(viewEnd,idx);i++){
+      const m=D.months[i];if(!m)continue;
+      if(rangeLen<=12||m.month%2===1){
+        const label=MN[m.month-1]+' '+String(m.year).slice(2);
+        cx.fillText(label,xFor(i),h-P.b+6);
+      }
+    }
+    // Subtle vertical grid lines
+    cx.strokeStyle='rgba(255,255,255,.04)';cx.lineWidth=1;
+    for(let i=viewStart;i<=viewEnd;i++){
+      const m=D.months[i];if(!m||m.month!==1)continue;
+      cx.beginPath();cx.moveTo(xFor(i),P.t);cx.lineTo(xFor(i),P.t+ph);cx.stroke();
+    }
+  }else if(rangeLen<=120){
+    // Yearly labels for medium zoom
+    const seen=new Set();
+    for(let i=viewStart;i<=Math.min(viewEnd,idx);i++){
+      const m=D.months[i];if(!m||m.month!==1||seen.has(m.year))continue;
+      seen.add(m.year);
+      cx.fillText(m.year,xFor(i),h-P.b+6);
+    }
+  }else{
+    // Decade labels for full view
+    [1960,1970,1980,1990,2000,2010,2020].forEach(yr=>{
+      const i=D.months.findIndex(m=>m.year===yr&&m.month===1);
+      if(i>=0&&i>=viewStart&&i<=viewEnd) cx.fillText(yr,xFor(i),h-P.b+6);
+    });
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1899,8 +1978,8 @@ mainCanvas.addEventListener('mousemove',e=>{
   const P={l:50,r:16}; const pw=mW-P.l-P.r;
   if(mx<P.l||mx>P.l+pw){hoverIdx=-1;mainTT.classList.remove('show');return;}
   const frac=(mx-P.l)/pw;
-  const i=Math.round(frac*(TOTAL-1));
-  if(i>idx||i<0){hoverIdx=-1;mainTT.classList.remove('show');return;}
+  const i=Math.round(viewStart+frac*(viewEnd-viewStart));
+  if(i>Math.min(idx,viewEnd)||i<viewStart){hoverIdx=-1;mainTT.classList.remove('show');return;}
   hoverIdx=i;
   showTT(i,mx,my);
 });
@@ -2042,14 +2121,107 @@ $('eraJump').addEventListener('click',()=>{
 });
 
 // ════════════════════════════════════════════════════════
+// DATA ZOOM
+// ════════════════════════════════════════════════════════
+function easeInOutCubic(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+
+function animateZoom(newStart,newEnd){
+  zoomAnimFromStart=viewStart;zoomAnimFromEnd=viewEnd;
+  targetStart=newStart;targetEnd=newEnd;
+  zoomAnimating=true;zoomAnimStart=performance.now();
+  dataZoomed=(newStart!==0||newEnd!==TOTAL-1);
+  updateZoomUI();
+}
+
+function updateZoomUI(){
+  const show=dataZoomed||zoomAnimating;
+  const wc=$('zoomWindowCtrl');
+  if(wc) wc.style.display=(show&&zoomEventType==='point')?'flex':'none';
+  const zi=$('zoomIndicator');
+  if(zi) zi.style.display=show?'flex':'none';
+  if(show){
+    const startM=D.months[targetStart];
+    const endM=D.months[targetEnd];
+    const rl=$('zoomRangeLabel');
+    if(startM&&endM&&rl) rl.textContent=MN[startM.month-1]+' '+startM.year+' \u2013 '+MN[endM.month-1]+' '+endM.year;
+  }
+  // Sync scrubber range
+  if(dataZoomed){
+    scrubber.min=viewStart;scrubber.max=viewEnd;
+  }else{
+    scrubber.min=0;scrubber.max=TOTAL-1;
+  }
+  scrubber.value=idx;
+  // Highlight active recession in sidebar
+  document.querySelectorAll('[id^="rec-"]').forEach((el,i)=>{
+    el.classList.toggle('active',zoomRecessionIdx===i);
+  });
+}
+
+function zoomToPointEvent(ei){
+  zoomEventType='point';zoomEventIdx=ei;zoomRecessionIdx=-1;
+  const newStart=Math.max(0,ei-zoomBeforeMonths);
+  const newEnd=Math.min(TOTAL-1,ei+zoomAfterMonths);
+  animateZoom(newStart,newEnd);
+}
+
+function zoomToRecession(recIdx){
+  const rec=D.recessions[recIdx];
+  const si=midx(rec.s),ei=midx(rec.e);
+  if(si<0||ei<0)return;
+  zoomEventType='recession';zoomRecessionIdx=recIdx;zoomEventIdx=-1;
+  selectedEvent=-1;$('evImpact').classList.remove('show');
+  const pad=6;
+  animateZoom(Math.max(0,si-pad),Math.min(TOTAL-1,ei+pad));
+  idx=Math.max(si,idx);
+  if(idx<si)idx=si;
+  scrubber.value=idx;
+  updateUI();
+}
+
+function unzoomTimeline(){
+  if(!dataZoomed&&!zoomAnimating)return;
+  zoomEventType='';zoomEventIdx=-1;zoomRecessionIdx=-1;
+  animateZoom(0,TOTAL-1);
+}
+
+function buildRecessions(){
+  const el=$('recessionList');
+  if(!el)return;
+  el.innerHTML='';
+  D.recessions.forEach((rec,i)=>{
+    const d=document.createElement('div');
+    d.className='ev-item';d.id='rec-'+i;
+    const sy=rec.s.split('-')[0],ey=rec.e.split('-')[0];
+    d.innerHTML='<span class="ev-icon" style="color:var(--red)">\u2588</span><span class="ev-text">'+rec.l+'</span><span class="ev-yr">'+sy+'\u2013'+ey+'</span>';
+    d.title='Click to zoom into '+rec.l;
+    d.addEventListener('click',()=>{
+      if(zoomRecessionIdx===i){unzoomTimeline();zoomRecessionIdx=-1;}
+      else zoomToRecession(i);
+    });
+    el.appendChild(d);
+  });
+}
+
+// ════════════════════════════════════════════════════════
 // ANIMATION
 // ════════════════════════════════════════════════════════
 function mainLoop(ts){
+  // Data zoom animation
+  if(zoomAnimating){
+    const elapsed=ts-zoomAnimStart;
+    const p=Math.min(1,elapsed/zoomAnimDuration);
+    const e=easeInOutCubic(p);
+    viewStart=Math.round(zoomAnimFromStart+(targetStart-zoomAnimFromStart)*e);
+    viewEnd=Math.round(zoomAnimFromEnd+(targetEnd-zoomAnimFromEnd)*e);
+    if(p>=1){viewStart=targetStart;viewEnd=targetEnd;zoomAnimating=false;updateZoomUI();}
+  }
   if(playing){
     if(!lastT) lastT=ts;
     if(ts-lastT>=55/speed){
       lastT=ts;
-      if(idx<TOTAL-1){idx++;updateUI();}
+      const maxIdx=dataZoomed?viewEnd:TOTAL-1;
+      if(idx<maxIdx){idx++;updateUI();}
       else{playing=false;playBtn.innerHTML='&#9654;';playBtn.classList.remove('active');}
     }
   }
@@ -2095,8 +2267,15 @@ normBtn.addEventListener('click',()=>{
 // Birthday controls
 const bdayBtn=$('bdayBtn');
 bdayBtn.addEventListener('click',()=>{
-  if(bdayPopupOpen){$('bdayPopup').classList.remove('show');bdayPopupOpen=false;}
-  else{$('bdayPopup').classList.add('show');bdayPopupOpen=true;}
+  const popup=$('bdayPopup');
+  if(bdayPopupOpen){popup.classList.remove('show');bdayPopupOpen=false;}
+  else{
+    const cb=$('controlsBar').getBoundingClientRect();
+    popup.style.left=(cb.left+14)+'px';
+    popup.style.bottom=(window.innerHeight-cb.top+8)+'px';
+    popup.style.top='auto';
+    popup.classList.add('show');bdayPopupOpen=true;
+  }
 });
 $('bdaySet').addEventListener('click',()=>{
   const m=parseInt($('bdayMonth').value),y=parseInt($('bdayYear').value);
@@ -2348,14 +2527,15 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if(e.key==='Escape'){
+    if(dataZoomed){selectedEvent=-1;$('evImpact').classList.remove('show');unzoomTimeline();updateUI();return;}
     if(bdayPopupOpen){$('bdayPopup').classList.remove('show');bdayPopupOpen=false;return;}
     if(selectedEvent>=0){selectedEvent=-1;$('evImpact').classList.remove('show');updateUI();return;}
   }
   if(e.key===' '){e.preventDefault();playBtn.click();}
-  if(e.key==='ArrowRight'){e.preventDefault();if(idx<TOTAL-1){idx++;updateUI();}}
-  if(e.key==='ArrowLeft'){e.preventDefault();if(idx>0){idx--;updateUI();}}
-  if(e.key==='ArrowUp'){e.preventDefault();idx=Math.min(TOTAL-1,idx+12);updateUI();}
-  if(e.key==='ArrowDown'){e.preventDefault();idx=Math.max(0,idx-12);updateUI();}
+  if(e.key==='ArrowRight'){e.preventDefault();const mx=dataZoomed?viewEnd:TOTAL-1;if(idx<mx){idx++;updateUI();}}
+  if(e.key==='ArrowLeft'){e.preventDefault();const mn=dataZoomed?viewStart:0;if(idx>mn){idx--;updateUI();}}
+  if(e.key==='ArrowUp'){e.preventDefault();const mx=dataZoomed?viewEnd:TOTAL-1;idx=Math.min(mx,idx+12);updateUI();}
+  if(e.key==='ArrowDown'){e.preventDefault();const mn=dataZoomed?viewStart:0;idx=Math.max(mn,idx-12);updateUI();}
   if(e.key==='n'||e.key==='N') normBtn.click();
   if(e.key==='e'||e.key==='E') eraBtn.click();
   if(e.key==='b'||e.key==='B') bdayBtn.click();
@@ -2372,6 +2552,18 @@ buildTicker();
 buildChips();
 buildStats();
 buildEvents();
+buildRecessions();
+// Zoom control listeners
+$('zoomResetBtn').addEventListener('click',unzoomTimeline);
+$('zoomResetInline').addEventListener('click',unzoomTimeline);
+$('zoomBefore').addEventListener('change',function(){
+  zoomBeforeMonths=parseInt(this.value);
+  if(dataZoomed&&zoomEventType==='point'&&zoomEventIdx>=0) zoomToPointEvent(zoomEventIdx);
+});
+$('zoomAfter').addEventListener('change',function(){
+  zoomAfterMonths=parseInt(this.value);
+  if(dataZoomed&&zoomEventType==='point'&&zoomEventIdx>=0) zoomToPointEvent(zoomEventIdx);
+});
 buildBdayPopup();
 buildInvestDatePicker();
 updateUI();

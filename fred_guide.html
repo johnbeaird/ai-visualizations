@@ -229,13 +229,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
     <li><a href="#toggle"><span class="tnum">05</span> Show &amp; hide lines</a></li>
     <li><a href="#events"><span class="tnum">06</span> Explore big moments</a></li>
     <li><a href="#impact"><span class="tnum">07</span> See event impact</a></li>
-    <li><a href="#eras"><span class="tnum">08</span> Walk through eras</a></li>
-    <li><a href="#sidebar"><span class="tnum">09</span> The sidebar explained</a></li>
-    <li><a href="#birthday"><span class="tnum">10</span> Birthday mode</a></li>
-    <li><a href="#invest"><span class="tnum">11</span> Investment simulator</a></li>
-    <li><a href="#viewmodes"><span class="tnum">12</span> Zoom &amp; magnifier</a></li>
-    <li><a href="#panels"><span class="tnum">13</span> Show &amp; hide panels</a></li>
-    <li><a href="#keys"><span class="tnum">14</span> Keyboard shortcuts</a></li>
+    <li><a href="#datazoom"><span class="tnum">08</span> Data zoom</a></li>
+    <li><a href="#eras"><span class="tnum">09</span> Walk through eras</a></li>
+    <li><a href="#sidebar"><span class="tnum">10</span> The sidebar explained</a></li>
+    <li><a href="#birthday"><span class="tnum">11</span> Birthday mode</a></li>
+    <li><a href="#invest"><span class="tnum">12</span> Investment simulator</a></li>
+    <li><a href="#viewmodes"><span class="tnum">13</span> Zoom &amp; magnifier</a></li>
+    <li><a href="#panels"><span class="tnum">14</span> Show &amp; hide panels</a></li>
+    <li><a href="#keys"><span class="tnum">15</span> Keyboard shortcuts</a></li>
   </ol>
 </div>
 
@@ -489,9 +490,28 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 8. ERAS ═══════ -->
-<div class="section" id="eras">
+<!-- ═══════ 8. DATA ZOOM ═══════ -->
+<div class="section" id="datazoom">
   <div class="section-num">08</div>
+  <h2>Data zoom</h2>
+  <p class="desc">Click any event or recession to zoom the chart into that time period. The Y-axis auto-fits and the X-axis shows monthly or yearly labels depending on the zoom level.</p>
+
+  <div class="steps">
+    <div class="step"><div class="step-content"><strong>Zoom to an event</strong> &mdash; Click any event in the left sidebar. The chart smoothly animates to a &plusmn;12-month window around that date. All three chart panels sync to the same range.</div></div>
+    <div class="step"><div class="step-content"><strong>Zoom to a recession</strong> &mdash; Scroll down in the sidebar to the <strong>Recessions</strong> list. Click any recession to zoom into its full duration with 6 months of padding on each side.</div></div>
+    <div class="step"><div class="step-content"><strong>Adjust the window</strong> &mdash; When zoomed to a point event, use the <strong>Before</strong> and <strong>After</strong> dropdowns in the controls bar to widen or narrow the view (3, 6, 12, 24, or 36 months).</div></div>
+    <div class="step"><div class="step-content"><strong>Return to full view</strong> &mdash; Click the same event again, press <span class="kbd">Esc</span>, or click the <strong>&times;</strong> on the zoom indicator pill. The chart smoothly animates back to the full 1960&ndash;2025 timeline.</div></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text"><strong>Playback works in zoom:</strong> Press <span class="kbd">Space</span> while zoomed and playback stays within the visible range. Arrow keys are also clamped to the zoomed window.</div>
+  </div>
+</div>
+
+<!-- ═══════ 9. ERAS ═══════ -->
+<div class="section" id="eras">
+  <div class="section-num">09</div>
   <h2>Walk through eras</h2>
   <p class="desc">Don't know where to start? The <strong>ERAS</strong> button gives you a guided tour through 11 historical periods with descriptions.</p>
 
@@ -526,9 +546,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   <p>Click <strong>"Jump to Era"</strong> to set the timeline to that period and automatically turn on the most relevant data lines.</p>
 </div>
 
-<!-- ═══════ 9. SIDEBAR ═══════ -->
+<!-- ═══════ 10. SIDEBAR ═══════ -->
 <div class="section" id="sidebar">
-  <div class="section-num">09</div>
+  <div class="section-num">10</div>
   <h2>The sidebar explained</h2>
   <p class="desc">The right panel shows three things:</p>
 
@@ -559,7 +579,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
 
 <!-- ═══════ CORRELATION (sub-section of sidebar) ═══════ -->
 <div class="section" id="correlation">
-  <div class="section-num">09b</div>
+  <div class="section-num">10b</div>
   <h2>Reading the correlation grid</h2>
   <p class="desc">The correlation grid shows how strongly two economic indicators move together. It answers the question: <em>"When one number goes up, does the other tend to go up too?"</em></p>
 
@@ -600,9 +620,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 10. BIRTHDAY ═══════ -->
+<!-- ═══════ 11. BIRTHDAY ═══════ -->
 <div class="section" id="birthday">
-  <div class="section-num">10</div>
+  <div class="section-num">11</div>
   <h2>Birthday mode</h2>
   <p class="desc">Make the data personal. Enter your birthday and the terminal shows what the economy was doing the day you were born &mdash; and every milestone since.</p>
 
@@ -627,9 +647,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 11. INVESTMENT ═══════ -->
+<!-- ═══════ 12. INVESTMENT ═══════ -->
 <div class="section" id="invest">
-  <div class="section-num">11</div>
+  <div class="section-num">12</div>
   <h2>Investment simulator</h2>
   <p class="desc">Ever wondered what $10,000 invested decades ago would be worth today? The simulator shows hypothetical returns across five different investments.</p>
 
@@ -654,9 +674,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 12. VIEW MODES ═══════ -->
+<!-- ═══════ 13. VIEW MODES ═══════ -->
 <div class="section" id="viewmodes">
-  <div class="section-num">12</div>
+  <div class="section-num">13</div>
   <h2>Zoom &amp; magnifier</h2>
   <p class="desc">The terminal uses small fonts for data density. Three view modes help you read the details.</p>
 
@@ -682,9 +702,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 13. PANELS ═══════ -->
+<!-- ═══════ 14. PANELS ═══════ -->
 <div class="section" id="panels">
-  <div class="section-num">13</div>
+  <div class="section-num">14</div>
   <h2>Show &amp; hide panels</h2>
   <p class="desc">Want more chart space? Collapse any panel to focus on what matters. Five toggle buttons sit at the edges of the screen.</p>
 
@@ -722,9 +742,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
-<!-- ═══════ 14. KEYBOARD ═══════ -->
+<!-- ═══════ 15. KEYBOARD ═══════ -->
 <div class="section" id="keys">
-  <div class="section-num">14</div>
+  <div class="section-num">15</div>
   <h2>Keyboard shortcuts</h2>
   <p class="desc">Power-user moves once you're comfortable.</p>
 
@@ -741,7 +761,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
       <tr><td><span class="kbd">I</span></td><td>Open / close Investment simulator</td></tr>
       <tr><td><span class="kbd">M</span></td><td>Toggle magnifier lens on / off</td></tr>
       <tr><td><span class="kbd">1</span> &ndash; <span class="kbd">5</span></td><td>Toggle panels: 1=ticker, 2=left, 3=right, 4=sub-charts, 5=controls</td></tr>
-      <tr><td><span class="kbd">Esc</span></td><td>Close eras overlay, deselect event, or exit birthday mode</td></tr>
+      <tr><td><span class="kbd">Esc</span></td><td>Unzoom data view, close eras overlay, deselect event, or exit birthday mode</td></tr>
     </table>
   </div>
 </div>
