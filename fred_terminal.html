@@ -287,6 +287,70 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:transparent;
   color:var(--dim);cursor:pointer;transition:all .12s}
 .zoom-window-ctrl .zw-reset:hover{color:var(--accent);border-color:var(--accent)}
+/* Export controls */
+.panel-header{position:relative}
+.export-btn{width:22px;height:22px;border-radius:3px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:11px;margin-left:auto;transition:all .15s;flex-shrink:0;padding:0}
+.export-btn:hover{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.06)}
+.export-dropdown{display:none;position:absolute;top:100%;right:8px;background:var(--s2);
+  border:1px solid var(--border2);border-radius:6px;padding:4px 0;z-index:40;min-width:140px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.export-dropdown.show{display:block}
+.export-dropdown-item{display:flex;align-items:center;gap:8px;padding:6px 12px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--dim);cursor:pointer;transition:all .1s;white-space:nowrap}
+.export-dropdown-item:hover{background:rgba(88,166,255,.08);color:var(--text)}
+.export-dropdown-item .exp-icon{font-size:12px;width:16px;text-align:center}
+/* Alert system */
+.alert-item{display:flex;align-items:center;gap:5px;padding:4px 4px;border-radius:4px;
+  font-size:10px;transition:all .15s;border:1px solid transparent}
+.alert-item.breached{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.2)}
+.alert-item .alert-icon{font-size:11px;width:16px;text-align:center;flex-shrink:0}
+.alert-item .alert-label{color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:9px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-item .alert-val{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;min-width:40px;text-align:right}
+.alert-item .alert-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.alert-item .alert-dot.on{background:var(--red);box-shadow:0 0 6px rgba(248,81,73,.5)}
+.alert-item .alert-dot.off{background:var(--green);opacity:.5}
+.alert-item .alert-toggle{font-size:10px;color:var(--muted);cursor:pointer;padding:0 2px;opacity:.5;transition:opacity .12s}
+.alert-item .alert-toggle:hover{opacity:1}
+.alert-item .alert-toggle.disabled{opacity:.25}
+.alert-item .alert-remove{font-size:11px;color:var(--muted);cursor:pointer;padding:0 2px;line-height:1}
+.alert-item .alert-remove:hover{color:var(--red)}
+.alert-add-row{display:flex;align-items:center;gap:3px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.04)}
+.alert-add-row select,.alert-add-row input{font-family:'JetBrains Mono',monospace;font-size:9px;
+  background:var(--s1);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:2px 3px}
+.alert-add-row select{flex:1;min-width:0}
+.alert-add-row input{width:42px;text-align:right}
+.alert-add-row button{font-family:'JetBrains Mono',monospace;font-size:10px;width:20px;height:20px;
+  border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--accent);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-add-row button:hover{border-color:var(--accent);background:rgba(88,166,255,.08)}
+.alert-badge{background:var(--red);color:#fff;font-size:7px;font-family:'JetBrains Mono',monospace;
+  padding:1px 4px;border-radius:8px;margin-left:2px;font-weight:700;display:none;min-width:14px;text-align:center}
+.alert-badge.show{display:inline-block}
+.whatif-driver-row{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.whatif-driver-row select{font-family:'JetBrains Mono',monospace;font-size:9px;
+  background:var(--s1);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px 4px;flex:1;min-width:0}
+.whatif-driver-row input{font-family:'JetBrains Mono',monospace;font-size:9px;
+  background:var(--s1);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px 4px;width:54px;text-align:right}
+.whatif-delta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);
+  margin-bottom:6px;padding:3px 6px;background:var(--s2);border-radius:3px;border:1px solid var(--border)}
+.whatif-delta .wdv{font-weight:700;color:var(--accent)}
+.whatif-result{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.whatif-result:last-child{border-bottom:none}
+.whatif-result-row{display:flex;align-items:center;gap:4px;font-size:10px}
+.whatif-result-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.whatif-result-name{color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:9px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.whatif-result-val{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);min-width:36px;text-align:right}
+.whatif-result-arr{color:var(--dim);font-size:8px;flex-shrink:0}
+.whatif-result-proj{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;min-width:36px;text-align:right}
+.whatif-result-chg{font-family:'JetBrains Mono',monospace;font-size:8px;padding:1px 3px;border-radius:2px;
+  flex-shrink:0;min-width:32px;text-align:right}
+.whatif-result-chg.up{color:var(--green);background:rgba(34,197,94,.08)}
+.whatif-result-chg.down{color:var(--red);background:rgba(239,68,68,.08)}
+.whatif-note{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);margin-top:6px;line-height:1.4}
 #magnifier{position:fixed;width:160px;height:160px;border-radius:50%;overflow:hidden;
   pointer-events:none;z-index:9999;border:2px solid var(--accent);
   box-shadow:0 0 24px rgba(88,166,255,.35),0 4px 12px rgba(0,0,0,.5);display:none}
@@ -502,6 +566,43 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
         <div class="invest-note">Simplified model. Bonds: reinvest at yield. Cash: 65% of fed funds.</div>
       </div>
     </div>
+    <div class="side-sec" id="alertSection" style="display:none">
+      <div class="side-label" data-tip="Threshold alerts that flag key economic conditions">
+        Alerts <span class="badge" id="alertBadge">0</span>
+        <span class="sec-toggle" id="alertToggle" data-tip="Show/hide alert list">&#9660;</span>
+      </div>
+      <div id="alertBody">
+        <div id="alertList"></div>
+        <div class="alert-add-row" id="alertAddRow">
+          <select id="alertSeries"></select>
+          <select id="alertOp">
+            <option value=">">&gt;</option>
+            <option value="<">&lt;</option>
+            <option value=">=">&ge;</option>
+            <option value="<=">&le;</option>
+            <option value="chg>">Δ%&gt;</option>
+          </select>
+          <input type="number" id="alertVal" placeholder="val" step="any">
+          <button id="alertAddBtn" data-tip="Add custom alert">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="side-sec" id="whatifSection" style="display:none">
+      <div class="side-label" data-tip="What-If Scenario: adjust one variable and see projected impacts">
+        What-If <span class="sec-toggle" id="whatifToggle" data-tip="Show/hide scenario details">&#9660;</span>
+      </div>
+      <div id="whatifBody">
+        <div class="whatif-driver-row">
+          <select id="whatifDriver"></select>
+          <span style="font-size:9px;color:var(--dim)">=</span>
+          <input type="number" id="whatifTarget" step="any" placeholder="val">
+          <span id="whatifUnit" style="font-size:8px;color:var(--muted)">%</span>
+        </div>
+        <div class="whatif-delta" id="whatifDelta"></div>
+        <div id="whatifResults"></div>
+        <div class="whatif-note">Simplified elasticity model for educational purposes. Not financial advice.</div>
+      </div>
+    </div>
     <div class="side-sec" id="corrSection">
       <div class="side-label">Correlation <span class="badge">60mo</span> <span class="sec-toggle" id="corrToggle" data-tip="Show/hide correlation grid">&#9660;</span></div>
       <div id="corrGrid"></div>
@@ -599,8 +700,11 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <button class="cb mode" id="eraBtn" data-tip="Browse historical eras with descriptions (E)">ERAS</button>
     <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
     <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
+    <button class="cb mode" id="alertBtn" data-tip="Toggle smart alerts — see when key thresholds are breached (A)">ALERT<span class="alert-badge" id="alertBadgeCtrl"></span></button>
+    <button class="cb mode" id="whatifBtn" data-tip="What-If scenario: adjust a variable and see projected impacts (W)">W-IF</button>
+    <button class="cb" id="dashExportBtn" data-tip="Export full dashboard as PNG (X)">&#8681;</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v2.01</span>
+    <span class="version">v2.03</span>
     <div class="view-mode" data-tip="View: Normal / Zoom (scale UI) / Magnify (lens on charts)">
       <button class="vm-btn active" id="vmNorm">NORM</button>
       <button class="vm-btn" id="vmZoom">ZOOM</button>
@@ -614,7 +718,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
       <span class="kbd">N</span><span class="kbd">E</span>
-      <span class="kbd">B</span><span class="kbd">I</span><span class="kbd">M</span>
+      <span class="kbd">B</span><span class="kbd">I</span><span class="kbd">A</span><span class="kbd">W</span><span class="kbd">M</span><span class="kbd">X</span>
       <span class="kbd">1-5 Panels</span>
     </div>
     <div class="ctrl-scroll-arrow right" id="ctrlScrollR">&#9654;</div>
@@ -865,6 +969,398 @@ function fmtVal(k, v){
   if(u==='pts') return Math.round(v).toLocaleString();
   if(u==='idx') return normalize ? v.toFixed(1) : Math.round(v).toLocaleString();
   return v.toFixed(2)+'%';
+}
+
+// ════════════════════════════════════════════════════════
+// EXPORT TOOLS
+// ════════════════════════════════════════════════════════
+function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV(panelKey){
+  const keys=(PANELS[panelKey]||[]).filter(k=>visible.has(k));
+  if(!keys.length) return;
+  const s=dataZoomed?viewStart:0;
+  const e=Math.min(idx,dataZoomed?viewEnd:TOTAL-1);
+  const rows=[['Date',...keys.map(k=>D.series[k].name)].join(',')];
+  for(let i=s;i<=e;i++){
+    const m=D.months[i];
+    const date=m.year+'-'+String(m.month).padStart(2,'0');
+    const vals=keys.map(k=>{const v=getVal(k,i);return v!=null?v:'';});
+    rows.push([date,...vals].join(','));
+  }
+  const ms=D.months[s],me=D.months[e];
+  const ds=ms.year+String(ms.month).padStart(2,'0');
+  const de=me.year+String(me.month).padStart(2,'0');
+  const nTag=normalize?'_normalized':'';
+  const filename=`fred_${panelKey}_${ds}_${de}${nTag}.csv`;
+  downloadBlob(new Blob([rows.join('\n')],{type:'text/csv'}),filename);
+}
+
+function exportPanelPNG(srcCanvas,panelKey,toClipboard){
+  const titleH=28;
+  const names={main:'Macro',housing:'Housing',sent:'Sentiment',invest:'Investment'};
+  const title=names[panelKey]||panelKey;
+  const ms=D.months[dataZoomed?viewStart:0];
+  const me=D.months[Math.min(idx,dataZoomed?viewEnd:TOTAL-1)];
+  const range=MN[ms.month-1]+' '+ms.year+' – '+MN[me.month-1]+' '+me.year;
+  // Create offscreen canvas with title bar
+  const dpr=devicePixelRatio||1;
+  const srcW=srcCanvas.width/dpr, srcH=srcCanvas.height/dpr;
+  const oc=document.createElement('canvas');
+  oc.width=Math.round((srcW)*dpr);
+  oc.height=Math.round((srcH+titleH)*dpr);
+  const ox=oc.getContext('2d');
+  ox.setTransform(dpr,0,0,dpr,0,0);
+  // Title bar
+  ox.fillStyle='#161b22';
+  ox.fillRect(0,0,srcW,titleH);
+  ox.font='bold 11px "JetBrains Mono",monospace';
+  ox.fillStyle='#58a6ff';
+  ox.fillText(title.toUpperCase(),10,18);
+  ox.font='10px "JetBrains Mono",monospace';
+  ox.fillStyle='#6e7a86';
+  const rangeW=ox.measureText(range).width;
+  ox.fillText(range,srcW/2-rangeW/2,18);
+  ox.fillStyle='#484f58';
+  const wm='FRED Terminal';
+  ox.fillText(wm,srcW-ox.measureText(wm).width-10,18);
+  // Separator
+  ox.fillStyle='#30363d';
+  ox.fillRect(0,titleH-1,srcW,1);
+  // Draw source canvas
+  ox.drawImage(srcCanvas,0,0,srcCanvas.width,srcCanvas.height,0,titleH,srcW,srcH);
+  oc.toBlob(blob=>{
+    if(toClipboard&&navigator.clipboard&&navigator.clipboard.write){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).catch(()=>{
+        downloadBlob(blob,`fred_${panelKey}.png`);
+      });
+    }else{
+      downloadBlob(blob,`fred_${panelKey}.png`);
+    }
+  },'image/png');
+}
+
+function exportDashboardPNG(){
+  const dpr=devicePixelRatio||1;
+  const headerH=40, footerH=30, dividerH=24, pad=0;
+  // Collect panels to include
+  const panels=[
+    {key:'main',canvas:mainCanvas,label:'MACRO'},
+    {key:'housing',canvas:hCanvas,label:'HOUSING'},
+    {key:'sent',canvas:sCanvas,label:'SENTIMENT'}
+  ];
+  if(investMode) panels.push({key:'invest',canvas:iCanvas,label:'INVESTMENT'});
+  // Calculate total dimensions (use widest panel)
+  const maxW=Math.max(...panels.map(p=>p.canvas.width/dpr));
+  let totalH=headerH+footerH;
+  panels.forEach(p=>{totalH+=dividerH+(p.canvas.height/dpr);});
+  const oc=document.createElement('canvas');
+  oc.width=Math.round(maxW*dpr);
+  oc.height=Math.round(totalH*dpr);
+  const ox=oc.getContext('2d');
+  ox.setTransform(dpr,0,0,dpr,0,0);
+  // Background
+  ox.fillStyle='#0d1117';
+  ox.fillRect(0,0,maxW,totalH);
+  // Header
+  ox.fillStyle='#161b22';
+  ox.fillRect(0,0,maxW,headerH);
+  ox.font='bold 14px "JetBrains Mono",monospace';
+  ox.fillStyle='#f0f3f6';
+  ox.fillText('FRED Economic Terminal',12,26);
+  ox.font='11px "JetBrains Mono",monospace';
+  ox.fillStyle='#6e7a86';
+  const ms=D.months[dataZoomed?viewStart:0];
+  const me=D.months[Math.min(idx,dataZoomed?viewEnd:TOTAL-1)];
+  const range=MN[ms.month-1]+' '+ms.year+' – '+MN[me.month-1]+' '+me.year;
+  const rw=ox.measureText(range).width;
+  ox.fillText(range,maxW-rw-12,26);
+  ox.fillStyle='#30363d';
+  ox.fillRect(0,headerH-1,maxW,1);
+  // Draw each panel
+  let y=headerH;
+  panels.forEach(p=>{
+    // Divider bar
+    ox.fillStyle='#1c2129';
+    ox.fillRect(0,y,maxW,dividerH);
+    ox.font='bold 10px "JetBrains Mono",monospace';
+    ox.fillStyle='#58a6ff';
+    ox.fillText(p.label,12,y+16);
+    ox.fillStyle='#30363d';
+    ox.fillRect(0,y+dividerH-1,maxW,1);
+    y+=dividerH;
+    // Panel canvas
+    const cw=p.canvas.width/dpr, ch=p.canvas.height/dpr;
+    ox.drawImage(p.canvas,0,0,p.canvas.width,p.canvas.height,0,y,cw,ch);
+    y+=ch;
+  });
+  // Footer
+  ox.fillStyle='#161b22';
+  ox.fillRect(0,y,maxW,footerH);
+  ox.font='9px "JetBrains Mono",monospace';
+  ox.fillStyle='#484f58';
+  ox.fillText('v2.03 · Data: FRED (Federal Reserve Economic Data)',12,y+18);
+  const now=new Date();
+  const stamp=now.toISOString().slice(0,10);
+  const sw=ox.measureText('Exported '+stamp).width;
+  ox.fillText('Exported '+stamp,maxW-sw-12,y+18);
+  // Download
+  const ym=String(me.year)+String(me.month).padStart(2,'0');
+  oc.toBlob(blob=>{downloadBlob(blob,`fred_dashboard_${ym}.png`);},'image/png');
+}
+
+// ════════════════════════════════════════════════════════
+// SMART ALERTS
+// ════════════════════════════════════════════════════════
+const DEFAULT_ALERTS=[
+  {id:'cpi_high',series:'cpi',op:'>',val:3,label:'CPI > 3%',icon:'\uD83D\uDD25',default:true},
+  {id:'unrate_low',series:'unrate',op:'<',val:4,label:'Unemp < 4%',icon:'\uD83D\uDFE2',default:true},
+  {id:'fed_high',series:'fed_funds',op:'>',val:5,label:'Fed Funds > 5%',icon:'\uD83C\uDFE6',default:true},
+  {id:'sp500_move',series:'sp500',op:'chg>',val:2,label:'S&P move > 2%',icon:'\uD83D\uDCC8',default:true}
+];
+let alertMode=false;
+let customAlerts=[];
+let allAlerts=[];
+
+function loadAlerts(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('fredAlerts'));
+    if(saved){
+      customAlerts=saved.custom||[];
+      // Restore enabled states for defaults
+      if(saved.defaultStates){
+        DEFAULT_ALERTS.forEach(a=>{if(saved.defaultStates[a.id]!==undefined) a.enabled=saved.defaultStates[a.id];});
+      }
+    }
+  }catch(e){}
+  DEFAULT_ALERTS.forEach(a=>{if(a.enabled===undefined) a.enabled=true;});
+  customAlerts.forEach(a=>{if(a.enabled===undefined) a.enabled=true;});
+  rebuildAlerts();
+}
+function saveAlerts(){
+  const defaultStates={};
+  DEFAULT_ALERTS.forEach(a=>{defaultStates[a.id]=a.enabled;});
+  try{localStorage.setItem('fredAlerts',JSON.stringify({custom:customAlerts,defaultStates}));}catch(e){}
+}
+function rebuildAlerts(){allAlerts=[...DEFAULT_ALERTS,...customAlerts];}
+
+function checkAlertCondition(alert,i){
+  const v=D.series[alert.series]?.data[i];
+  if(v==null) return{breached:false,val:null};
+  if(alert.op==='chg>'){
+    if(i<1) return{breached:false,val:v};
+    const prev=D.series[alert.series]?.data[i-1];
+    if(!prev) return{breached:false,val:v};
+    const chg=Math.abs((v-prev)/prev*100);
+    return{breached:chg>alert.val,val:v,chg};
+  }
+  if(alert.op==='>') return{breached:v>alert.val,val:v};
+  if(alert.op==='<') return{breached:v<alert.val,val:v};
+  if(alert.op==='>=') return{breached:v>=alert.val,val:v};
+  if(alert.op==='<=') return{breached:v<=alert.val,val:v};
+  return{breached:false,val:v};
+}
+
+function buildAlertList(){
+  const el=$('alertList');
+  el.innerHTML='';
+  allAlerts.forEach((a,i)=>{
+    const row=document.createElement('div');
+    row.className='alert-item';
+    row.id='alert-'+i;
+    const toggleCls=a.enabled?'':'disabled';
+    const isCustom=!a.default;
+    row.innerHTML=`<span class="alert-icon">${a.icon||'⚠'}</span>`+
+      `<span class="alert-label">${a.label}</span>`+
+      `<span class="alert-val" id="alertv-${i}">—</span>`+
+      `<span class="alert-dot" id="alertd-${i}"></span>`+
+      `<span class="alert-toggle ${toggleCls}" data-idx="${i}" title="Toggle alert">${a.enabled?'●':'○'}</span>`+
+      (isCustom?`<span class="alert-remove" data-idx="${i}" title="Remove alert">&times;</span>`:'');
+    el.appendChild(row);
+  });
+  // Toggle listeners
+  el.querySelectorAll('.alert-toggle').forEach(t=>{
+    t.addEventListener('click',e=>{
+      const ai=parseInt(e.target.dataset.idx);
+      allAlerts[ai].enabled=!allAlerts[ai].enabled;
+      e.target.textContent=allAlerts[ai].enabled?'●':'○';
+      e.target.classList.toggle('disabled',!allAlerts[ai].enabled);
+      saveAlerts();
+      updateAlertPanel();
+    });
+  });
+  // Remove listeners
+  el.querySelectorAll('.alert-remove').forEach(r=>{
+    r.addEventListener('click',e=>{
+      const ai=parseInt(e.target.dataset.idx);
+      const a=allAlerts[ai];
+      customAlerts=customAlerts.filter(c=>c.id!==a.id);
+      rebuildAlerts();
+      saveAlerts();
+      buildAlertList();
+      updateAlertPanel();
+    });
+  });
+}
+
+function updateAlertPanel(){
+  if(!alertMode) return;
+  let breachCount=0;
+  allAlerts.forEach((a,i)=>{
+    const row=$('alert-'+i);
+    const valEl=$('alertv-'+i);
+    const dotEl=$('alertd-'+i);
+    if(!row||!valEl||!dotEl) return;
+    if(!a.enabled){
+      row.classList.remove('breached');
+      valEl.textContent='—';
+      dotEl.className='alert-dot off';
+      return;
+    }
+    const res=checkAlertCondition(a,idx);
+    if(res.val!=null){
+      valEl.textContent=fmtVal(a.series,res.val);
+      valEl.style.color=res.breached?'var(--red)':'var(--dim)';
+    }
+    if(res.breached){
+      row.classList.add('breached');
+      dotEl.className='alert-dot on';
+      breachCount++;
+    }else{
+      row.classList.remove('breached');
+      dotEl.className='alert-dot off';
+    }
+  });
+  // Update badge
+  const badge=$('alertBadge');
+  const badgeCtrl=$('alertBadgeCtrl');
+  badge.textContent=breachCount;
+  badge.classList.toggle('show',breachCount>0);
+  if(badgeCtrl){badgeCtrl.textContent=breachCount;badgeCtrl.classList.toggle('show',breachCount>0);}
+}
+
+function addCustomAlert(series,op,val){
+  const id='custom_'+Date.now();
+  const s=D.series[series];
+  const opLabel=op==='chg>'?'chg>':op;
+  const label=s.short+' '+opLabel+' '+val;
+  const alert={id,series,op,val:parseFloat(val),label,icon:'🔔',enabled:true};
+  customAlerts.push(alert);
+  rebuildAlerts();
+  saveAlerts();
+  buildAlertList();
+}
+
+function initAlertForm(){
+  const sel=$('alertSeries');
+  KEYS.forEach(k=>{
+    const o=document.createElement('option');
+    o.value=k;o.textContent=D.series[k].short;
+    sel.appendChild(o);
+  });
+  $('alertAddBtn').addEventListener('click',()=>{
+    const s=$('alertSeries').value;
+    const op=$('alertOp').value;
+    const v=$('alertVal').value;
+    if(!v||isNaN(parseFloat(v))) return;
+    addCustomAlert(s,op,v);
+    $('alertVal').value='';
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// WHAT-IF SCENARIO ENGINE
+// ════════════════════════════════════════════════════════
+let whatIfMode=false, whatIfDriver='fed_funds', whatIfTarget=null;
+
+const ELASTICITIES={
+  fed_funds:{gs10:0.6,mortgage30:0.8,cpi:-0.3,unrate:0.2,sp500:-0.15,gdp:-0.25,case_shiller:-0.4,sentiment:-0.2,pmi:-0.15},
+  cpi:{fed_funds:0.5,gs10:0.4,mortgage30:0.35,sentiment:-0.5,sp500:-0.2,gdp:-0.15,unrate:0.1,pmi:-0.1},
+  gs10:{mortgage30:0.9,sp500:-0.1,case_shiller:-0.3,fed_funds:0.3,sentiment:-0.1},
+  unrate:{gdp:-0.4,sentiment:-0.6,sp500:-0.3,fed_funds:-0.3,cpi:-0.15,pmi:-0.5},
+  gdp:{sp500:0.3,unrate:-0.3,sentiment:0.4,pmi:0.5,fed_funds:0.2,cpi:0.15},
+  sp500:{sentiment:0.002,gdp:0.001},
+  mortgage30:{case_shiller:-0.5,sentiment:-0.15},
+  case_shiller:{sentiment:0.003,gdp:0.002},
+  sentiment:{sp500:0.5,gdp:0.01},
+  pmi:{gdp:0.1,sp500:0.3,sentiment:0.3,unrate:-0.1}
+};
+
+function computeWhatIfScenario(){
+  if(whatIfTarget==null||!ELASTICITIES[whatIfDriver]) return null;
+  const actualVal=D.series[whatIfDriver].data[idx];
+  if(actualVal==null) return null;
+  const driverDelta=whatIfTarget-actualVal;
+  const eMap=ELASTICITIES[whatIfDriver];
+  const impacts={};
+  Object.keys(eMap).forEach(tk=>{
+    const coeff=eMap[tk];
+    if(!D.series[tk]) return;
+    const av=D.series[tk].data[idx];
+    if(av==null) return;
+    const unit=D.series[tk].unit;
+    // For pts/idx: elasticity as % of current value; for %: direct
+    const projDelta=(unit==='pts'||unit==='idx')?av*coeff*driverDelta/100:coeff*driverDelta;
+    impacts[tk]={actual:av,projected:av+projDelta,delta:projDelta,
+      pctChg:av!==0?(projDelta/Math.abs(av))*100:0};
+  });
+  return{driverDelta,impacts};
+}
+
+function buildWhatIfPanel(){
+  const sel=$('whatifDriver');
+  sel.innerHTML='';
+  KEYS.forEach(k=>{
+    const o=document.createElement('option');
+    o.value=k;o.textContent=D.series[k].short;
+    if(k===whatIfDriver) o.selected=true;
+    sel.appendChild(o);
+  });
+  updateWhatIfTarget();
+}
+
+function updateWhatIfTarget(){
+  const s=D.series[whatIfDriver];
+  $('whatifUnit').textContent=s.unit==='%'?'%':s.unit;
+  const v=s.data[idx];
+  whatIfTarget=v;
+  $('whatifTarget').value=v!=null?v.toFixed(s.unit==='%'?2:0):'';
+}
+
+function updateWhatIfPanel(){
+  if(!whatIfMode) return;
+  const scenario=computeWhatIfScenario();
+  const deltaEl=$('whatifDelta');
+  const resEl=$('whatifResults');
+  if(!scenario){deltaEl.innerHTML='Set a target value above';resEl.innerHTML='';return;}
+  const ds=D.series[whatIfDriver];
+  const sign=scenario.driverDelta>=0?'+':'';
+  deltaEl.innerHTML=`${ds.short}: <span class="wdv">${sign}${scenario.driverDelta.toFixed(2)}${ds.unit==='%'?'%':''}</span> from ${fmtVal(whatIfDriver,ds.data[idx])} → ${fmtVal(whatIfDriver,whatIfTarget)}`;
+  // Sort: largest absolute impact first
+  const sorted=Object.keys(scenario.impacts).sort((a,b)=>Math.abs(scenario.impacts[b].delta)-Math.abs(scenario.impacts[a].delta));
+  let html='';
+  sorted.forEach(k=>{
+    const imp=scenario.impacts[k];
+    const s=D.series[k];
+    const sg=imp.delta>=0?'+':'';
+    const cls=imp.delta>=0?'up':'down';
+    html+=`<div class="whatif-result"><div class="whatif-result-row">`+
+      `<span class="whatif-result-dot" style="background:${s.color}"></span>`+
+      `<span class="whatif-result-name">${s.short}</span>`+
+      `<span class="whatif-result-val">${fmtVal(k,imp.actual)}</span>`+
+      `<span class="whatif-result-arr">→</span>`+
+      `<span class="whatif-result-proj" style="color:${s.color}">${fmtVal(k,imp.projected)}</span>`+
+      `<span class="whatif-result-chg ${cls}">${sg}${imp.delta.toFixed(2)}</span>`+
+      `</div></div>`;
+  });
+  resEl.innerHTML=html;
 }
 
 // ════════════════════════════════════════════════════════
@@ -1406,6 +1902,7 @@ function drawSparklines(){
 
 // Chips per panel
 function buildChips(){
+  const canvasMap={main:mainCanvas,housing:hCanvas,sent:sCanvas};
   Object.entries(PANELS).forEach(([panel, keys])=>{
     const bar = $(panel==='main'?'mainChips':panel==='housing'?'housingChips':'sentChips');
     const title = panel==='main'?'MACRO':panel==='housing'?'HOUSING':'SENTIMENT';
@@ -1426,6 +1923,35 @@ function buildChips(){
       });
       bar.appendChild(ch);
     });
+    // Export button + dropdown
+    const expBtn=document.createElement('button');
+    expBtn.className='export-btn';
+    expBtn.innerHTML='&#8681;';
+    expBtn.title='Export this panel';
+    const dd=document.createElement('div');
+    dd.className='export-dropdown';
+    dd.innerHTML=`<div class="export-dropdown-item" data-action="copy-png" data-panel="${panel}"><span class="exp-icon">&#128203;</span>Copy PNG</div>`+
+      `<div class="export-dropdown-item" data-action="save-png" data-panel="${panel}"><span class="exp-icon">&#128190;</span>Save PNG</div>`+
+      `<div class="export-dropdown-item" data-action="save-csv" data-panel="${panel}"><span class="exp-icon">&#128196;</span>Save CSV</div>`;
+    expBtn.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      // Close any other open dropdowns
+      document.querySelectorAll('.export-dropdown.show').forEach(d=>{if(d!==dd)d.classList.remove('show');});
+      dd.classList.toggle('show');
+    });
+    dd.querySelectorAll('.export-dropdown-item').forEach(item=>{
+      item.addEventListener('click',ev=>{
+        ev.stopPropagation();
+        const action=item.dataset.action;
+        const pk=item.dataset.panel;
+        dd.classList.remove('show');
+        if(action==='copy-png') exportPanelPNG(canvasMap[pk],pk,true);
+        else if(action==='save-png') exportPanelPNG(canvasMap[pk],pk,false);
+        else if(action==='save-csv') exportCSV(pk);
+      });
+    });
+    bar.appendChild(expBtn);
+    bar.appendChild(dd);
   });
 }
 
@@ -1656,7 +2182,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   function yOther(v){return P.t+ph-((v-oMin)/(oMax-oMin))*ph;}
 
   // Single axis: unified range for all visible series
-  var singleMin=0, singleMax=10;
+  let singleMin=0, singleMax=10;
   if(!dualAxis){
     const[aMin,aMax]=rangeFor(vis);
     singleMin=aMin; singleMax=aMax;
@@ -1936,6 +2462,74 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       if(i>=0&&i>=viewStart&&i<=viewEnd) cx.fillText(yr,xFor(i),h-P.b+6);
     });
   }
+
+  // Overlay helpers — shared visSet for alert + what-if overlays
+  const visSet=(alertMode||whatIfMode)?new Set(vis):null;
+
+  // Alert threshold lines
+  if(alertMode&&visSet){
+    const tAlerts=allAlerts.filter(a=>a.enabled&&a.op!=='chg>'&&visSet.has(a.series));
+    if(tAlerts.length){
+      cx.save();
+      cx.strokeStyle='rgba(248,81,73,.35)';
+      cx.lineWidth=1;
+      cx.setLineDash([6,4]);
+      cx.font=cFont(8);
+      cx.fillStyle='rgba(248,81,73,.5)';
+      cx.textAlign='right';
+      tAlerts.forEach(a=>{
+        const yFn=yFor(a.series);
+        const base=normalize?D.series[a.series].data[normBase]:0;
+        const tv=normalize?(base!==0?(a.val/base)*100:0):a.val;
+        const y=yFn(tv);
+        if(y<P.t-2||y>P.t+ph+2) return;
+        cx.beginPath();cx.moveTo(P.l,y);cx.lineTo(P.l+pw,y);cx.stroke();
+        cx.fillText(a.val+(D.series[a.series].unit==='%'?'%':''),P.l+pw-2,y-3);
+      });
+      cx.setLineDash([]);
+      cx.restore();
+    }
+  }
+
+  // What-If scenario overlay
+  if(whatIfMode&&whatIfTarget!=null&&visSet){
+    const scenario=computeWhatIfScenario();
+    if(scenario){
+      cx.save();
+      const impKeys=Object.keys(scenario.impacts);
+      for(let ii=0;ii<impKeys.length;ii++){
+        const k=impKeys[ii];
+        if(!visSet.has(k)) continue;
+        const imp=scenario.impacts[k];
+        const s=D.series[k];
+        const yFn=yFor(k);
+        const base=normalize?s.data[normBase]:0;
+        const projNorm=normalize?(base!==0?(imp.projected/base)*100:0):imp.projected;
+        const actNorm=getVal(k,idx);
+        const projY=yFn(projNorm);
+        const actY=yFn(actNorm);
+        if(projY<P.t-10||projY>P.t+ph+10) continue;
+        // Shaded region (clamped to chart bounds)
+        const rTop=Math.max(P.t,Math.min(actY,projY));
+        const rBot=Math.min(P.t+ph,Math.max(actY,projY));
+        const rH=rBot-rTop;
+        if(rH>1){cx.fillStyle=s.color+'0D';cx.fillRect(P.l,rTop,pw,rH);}
+        // Dashed projection line
+        cx.strokeStyle=s.color+'70';cx.lineWidth=1.5;
+        cx.setLineDash([6,4]);
+        cx.beginPath();cx.moveTo(P.l,projY);cx.lineTo(P.l+pw,projY);cx.stroke();
+        cx.setLineDash([]);
+        // Label
+        cx.font=cFont(8,'bold');cx.fillStyle=s.color+'BB';cx.textAlign='right';
+        cx.fillText('W-IF: '+fmtVal(k,imp.projected),P.l+pw-4,projY-4);
+        // Hollow circle at scrubber position
+        const ex=xFor(idx);
+        cx.beginPath();cx.arc(ex,projY,4,0,Math.PI*2);
+        cx.strokeStyle=s.color;cx.lineWidth=1.5;cx.stroke();
+      }
+      cx.restore();
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -2032,6 +2626,9 @@ function updateUI(){
 
   // Investment panel
   if(investMode) updateInvestPanel();
+  // Alerts
+  if(alertMode) updateAlertPanel();
+  if(whatIfMode) updateWhatIfPanel();
   checkCommentary();
 
   // Stats
@@ -2158,10 +2755,20 @@ function updateZoomUI(){
   });
 }
 
+// Center a zoom window: put center index in the middle of a window of totalWidth months.
+// If centering pushes past index 0, left-justify. If past TOTAL-1, right-justify.
+function centerZoomWindow(center, totalWidth){
+  let s=Math.round(center-totalWidth/2);
+  let e=Math.round(center+totalWidth/2);
+  if(s<0){e=Math.min(TOTAL-1,e-s);s=0;}
+  if(e>TOTAL-1){s=Math.max(0,s-(e-(TOTAL-1)));e=TOTAL-1;}
+  return[s,e];
+}
+
 function zoomToPointEvent(ei){
   zoomEventType='point';zoomEventIdx=ei;zoomRecessionIdx=-1;
-  const newStart=Math.max(0,ei-zoomBeforeMonths);
-  const newEnd=Math.min(TOTAL-1,ei+zoomAfterMonths);
+  const totalWidth=zoomBeforeMonths+zoomAfterMonths;
+  const[newStart,newEnd]=centerZoomWindow(ei,totalWidth);
   animateZoom(newStart,newEnd);
 }
 
@@ -2170,11 +2777,14 @@ function zoomToRecession(recIdx){
   const si=midx(rec.s),ei=midx(rec.e);
   if(si<0||ei<0)return;
   zoomEventType='recession';zoomRecessionIdx=recIdx;zoomEventIdx=-1;
-  selectedEvent=-1;$('evImpact').classList.remove('show');
-  const pad=6;
-  animateZoom(Math.max(0,si-pad),Math.min(TOTAL-1,ei+pad));
-  idx=Math.max(si,idx);
+  const duration=ei-si;
+  const center=Math.round((si+ei)/2);
+  // Give context proportional to the recession: at least duration + 12, up to duration * 2
+  const totalWidth=Math.max(duration+12, Math.round(duration*2));
+  const[newStart,newEnd]=centerZoomWindow(center,totalWidth);
+  animateZoom(newStart,newEnd);
   if(idx<si)idx=si;
+  if(idx>ei)idx=ei;
   scrubber.value=idx;
   updateUI();
 }
@@ -2310,6 +2920,48 @@ $('investAmount').addEventListener('input',e=>{
   const v=parseFloat(e.target.value);
   if(v>0)investAmount=v;
   updateUI();
+});
+
+// Alert button
+const alertBtn=$('alertBtn');
+alertBtn.addEventListener('click',()=>{
+  alertMode=!alertMode;
+  alertBtn.classList.toggle('active',alertMode);
+  $('alertSection').style.display=alertMode?'':'none';
+  if(alertMode){buildAlertList();updateAlertPanel();}
+  updateUI();
+});
+$('alertToggle').addEventListener('click',()=>{
+  const body=$('alertBody');
+  const shown=body.style.display!=='none';
+  body.style.display=shown?'none':'';
+  $('alertToggle').textContent=shown?'\u25B6':'\u25BC';
+});
+
+// What-If Scenario
+const whatifBtn=$('whatifBtn');
+whatifBtn.addEventListener('click',()=>{
+  whatIfMode=!whatIfMode;
+  whatifBtn.classList.toggle('active',whatIfMode);
+  $('whatifSection').style.display=whatIfMode?'':'none';
+  if(whatIfMode){buildWhatIfPanel();updateWhatIfPanel();}
+  updateUI();
+});
+$('whatifToggle').addEventListener('click',()=>{
+  const body=$('whatifBody');
+  const shown=body.style.display!=='none';
+  body.style.display=shown?'none':'';
+  $('whatifToggle').textContent=shown?'\u25B6':'\u25BC';
+});
+$('whatifDriver').addEventListener('change',e=>{
+  whatIfDriver=e.target.value;
+  updateWhatIfTarget();
+  updateWhatIfPanel();
+});
+$('whatifTarget').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value);
+  if(!isNaN(v)) whatIfTarget=v;
+  updateWhatIfPanel();
 });
 
 // Investment type tabs (Lump Sum / Recurring)
@@ -2527,19 +3179,28 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if(e.key==='Escape'){
-    if(dataZoomed){selectedEvent=-1;$('evImpact').classList.remove('show');unzoomTimeline();updateUI();return;}
+    // Close export dropdowns first
+    const openDD=document.querySelector('.export-dropdown.show');
+    if(openDD){openDD.classList.remove('show');return;}
+    if(dataZoomed){unzoomTimeline();updateUI();return;}
     if(bdayPopupOpen){$('bdayPopup').classList.remove('show');bdayPopupOpen=false;return;}
     if(selectedEvent>=0){selectedEvent=-1;$('evImpact').classList.remove('show');updateUI();return;}
+    if(whatIfMode){whatifBtn.click();return;}
+    if(alertMode){alertBtn.click();return;}
   }
   if(e.key===' '){e.preventDefault();playBtn.click();}
   if(e.key==='ArrowRight'){e.preventDefault();const mx=dataZoomed?viewEnd:TOTAL-1;if(idx<mx){idx++;updateUI();}}
   if(e.key==='ArrowLeft'){e.preventDefault();const mn=dataZoomed?viewStart:0;if(idx>mn){idx--;updateUI();}}
   if(e.key==='ArrowUp'){e.preventDefault();const mx=dataZoomed?viewEnd:TOTAL-1;idx=Math.min(mx,idx+12);updateUI();}
   if(e.key==='ArrowDown'){e.preventDefault();const mn=dataZoomed?viewStart:0;idx=Math.max(mn,idx-12);updateUI();}
+  if(tag==='INPUT'||tag==='SELECT') return;
   if(e.key==='n'||e.key==='N') normBtn.click();
   if(e.key==='e'||e.key==='E') eraBtn.click();
   if(e.key==='b'||e.key==='B') bdayBtn.click();
   if(e.key==='i'||e.key==='I') investBtn.click();
+  if(e.key==='a'||e.key==='A') alertBtn.click();
+  if(e.key==='w'||e.key==='W') whatifBtn.click();
+  if(e.key==='x'||e.key==='X'){if(!e.ctrlKey&&!e.metaKey){exportDashboardPNG();return;}}
   if(e.key==='Home'){idx=0;updateUI();}
   if(e.key==='End'){idx=TOTAL-1;updateUI();}
 });
@@ -2564,6 +3225,11 @@ $('zoomAfter').addEventListener('change',function(){
   zoomAfterMonths=parseInt(this.value);
   if(dataZoomed&&zoomEventType==='point'&&zoomEventIdx>=0) zoomToPointEvent(zoomEventIdx);
 });
+// Export controls
+document.addEventListener('click',()=>{document.querySelectorAll('.export-dropdown.show').forEach(d=>d.classList.remove('show'));});
+$('dashExportBtn').addEventListener('click',exportDashboardPNG);
+loadAlerts();
+initAlertForm();
 buildBdayPopup();
 buildInvestDatePicker();
 updateUI();
