@@ -243,6 +243,25 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
 .version{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);
   letter-spacing:.5px;flex-shrink:0;user-select:none}
 
+/* View mode & zoom controls */
+.view-mode{display:flex;align-items:center;gap:2px;margin-left:4px;flex-shrink:0}
+.vm-btn{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;
+  border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--dim);
+  cursor:pointer;transition:all .12s}
+.vm-btn:hover{color:var(--text);border-color:var(--accent)}
+.vm-btn.active{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.08)}
+.zoom-adj{display:flex;align-items:center;gap:2px;margin-left:2px}
+.zoom-adj button{font-size:11px;width:18px;height:18px;border-radius:3px;
+  border:1px solid var(--border);background:transparent;color:var(--text);
+  cursor:pointer;display:flex;align-items:center;justify-content:center}
+.zoom-adj button:hover{border-color:var(--accent)}
+.zoom-adj .zlbl{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--muted);
+  min-width:24px;text-align:center}
+#magnifier{position:fixed;width:160px;height:160px;border-radius:50%;overflow:hidden;
+  pointer-events:none;z-index:9999;border:2px solid var(--accent);
+  box-shadow:0 0 24px rgba(88,166,255,.35),0 4px 12px rgba(0,0,0,.5);display:none}
+#magnifier canvas{display:block}
+
 /* Tooltip styling */
 [title]{position:relative}
 [data-tip]{position:relative}
@@ -536,11 +555,21 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <button class="cb mode" id="bdayBtn" data-tip="Enter your birthday to personalize the timeline (B)">BDAY</button>
     <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
-    <span class="version">v1.05</span>
+    <span class="version">v1.06</span>
+    <div class="view-mode" data-tip="View: Normal / Zoom (scale UI) / Magnify (lens on charts)">
+      <button class="vm-btn active" id="vmNorm">NORM</button>
+      <button class="vm-btn" id="vmZoom">ZOOM</button>
+      <button class="vm-btn" id="vmMag">MAG</button>
+    </div>
+    <div class="zoom-adj" id="zoomAdj" style="display:none">
+      <button id="zoomOut" data-tip="Zoom out (Ctrl+-)">&#8722;</button>
+      <span class="zlbl" id="zoomLevel">100%</span>
+      <button id="zoomIn" data-tip="Zoom in (Ctrl++)">+</button>
+    </div>
     <div class="kbd-hints">
       <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
       <span class="kbd">N</span><span class="kbd">E</span>
-      <span class="kbd">B</span><span class="kbd">I</span>
+      <span class="kbd">B</span><span class="kbd">I</span><span class="kbd">M</span>
       <span class="kbd">1-5 Panels</span>
     </div>
     <!-- Birthday popup -->
@@ -565,6 +594,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     </div>
   </div>
 </div>
+<div id="magnifier"><canvas id="magCanvas" width="160" height="160"></canvas></div>
 
 <script>
 // ════════════════════════════════════════════════════════
@@ -595,6 +625,7 @@ let selectedEvent = -1, impactMonths = 3;
 let birthdayIdx = -1, birthdayMode = false, bdayPopupOpen = false;
 let investMode = false, investStartIdx = 0, investAmount = 10000;
 let investType = 'lump', investInterval = 12;
+let viewMode = 'normal', zoomLevel = 1.0;
 
 // ════════════════════════════════════════════════════════
 // PANEL COLLAPSE SYSTEM
@@ -1013,7 +1044,7 @@ function drawInvestChart(cx,w,h){
     cx.beginPath();cx.moveTo(P.l,y);cx.lineTo(P.l+pw,y);cx.stroke();
   }
   // Y axis labels (right side, dollar values)
-  cx.font='9px "JetBrains Mono",monospace';
+  cx.font=cFont(9);
   cx.fillStyle='rgba(255,255,255,.2)';
   cx.textAlign='left';cx.textBaseline='middle';
   for(let i=0;i<=4;i++){
@@ -1062,7 +1093,7 @@ function drawInvestChart(cx,w,h){
   });
 
   // Legend in top-left
-  cx.font='8px "JetBrains Mono",monospace';
+  cx.font=cFont(8);
   cx.textAlign='left';cx.textBaseline='middle';
   series.forEach((s,i)=>{
     const lx=P.l+6, ly=P.t+8+i*12;
@@ -1471,6 +1502,11 @@ function roundedRect(c,x,y,w,h,r){
   c.closePath();
 }
 
+function cFont(size, weight=''){
+  const s = viewMode==='zoom' ? Math.round(size*zoomLevel) : size;
+  return (weight?weight+' ':'')+s+'px "JetBrains Mono",monospace';
+}
+
 function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   if(w<10||h<10)return;
   cx.clearRect(0,0,w,h);
@@ -1527,7 +1563,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       // Label
       if(x2-x1>30){
         cx.save();
-        cx.font='8px "JetBrains Mono",monospace';
+        cx.font=cFont(8);
         cx.fillStyle='rgba(239,68,68,.18)';
         cx.textAlign='center';
         cx.fillText(rec.l,(x1+x2)/2,P.t+10);
@@ -1545,7 +1581,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   }
 
   // Y axis labels (left)
-  cx.font='9px "JetBrains Mono",monospace';
+  cx.font=cFont(9);
   cx.fillStyle='rgba(255,255,255,.2)';
   cx.textAlign='right'; cx.textBaseline='middle';
   for(let i=0;i<=5;i++){
@@ -1592,7 +1628,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       cx.setLineDash([3,4]);
       cx.beginPath();cx.moveTo(x,P.t);cx.lineTo(x,P.t+ph);cx.stroke();
       cx.setLineDash([]);
-      cx.font='bold 9px "JetBrains Mono",monospace';
+      cx.font=cFont(9,'bold');
       cx.fillStyle='rgba(63,185,80,.6)';cx.textAlign='center';
       cx.fillText(ms.label,x,P.t-4);
       cx.restore();
@@ -1605,7 +1641,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       cx.setLineDash([5,3]);
       cx.beginPath();cx.moveTo(bx,P.t);cx.lineTo(bx,P.t+ph);cx.stroke();
       cx.setLineDash([]);
-      cx.font='bold 9px "JetBrains Mono",monospace';
+      cx.font=cFont(9,'bold');
       cx.fillStyle='rgba(63,185,80,.8)';cx.textAlign='center';
       cx.fillText('★ Born',bx,P.t+ph+12);
       cx.restore();
@@ -1620,7 +1656,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     cx.setLineDash([4,4]);
     cx.beginPath();cx.moveTo(ix,P.t);cx.lineTo(ix,P.t+ph);cx.stroke();
     cx.setLineDash([]);
-    cx.font='8px "JetBrains Mono",monospace';
+    cx.font=cFont(8);
     cx.fillStyle='rgba(88,166,255,.5)';cx.textAlign='center';
     cx.fillText('$'+formatDollar(investAmount),ix,P.t-4);
     cx.restore();
@@ -1721,7 +1757,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
       // Event label on chart for selected event
       if(isSelected){
         cx.save();
-        cx.font='bold 9px "JetBrains Mono",monospace';
+        cx.font=cFont(9,'bold');
         cx.fillStyle='rgba(88,166,255,.7)';
         cx.textAlign='center';
         cx.fillText(ev.icon+' '+ev.label,x,P.t+ph-6);
@@ -1747,7 +1783,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
   }
 
   // X labels
-  cx.font='9px "JetBrains Mono",monospace';
+  cx.font=cFont(9);
   cx.fillStyle='rgba(255,255,255,.15)';
   cx.textAlign='center';cx.textBaseline='top';
   [1960,1970,1980,1990,2000,2010,2020].forEach(yr=>{
@@ -2090,8 +2126,93 @@ document.getElementById('layout').addEventListener('transitionend',e=>{
   if(e.target===document.getElementById('layout')){resizeAll();updateTogglePositions();}
 });
 
+// ════════════════════════════════════════════════════════
+// VIEW MODE: Normal / Zoom / Magnify
+// ════════════════════════════════════════════════════════
+function setViewMode(mode){
+  viewMode=mode;
+  $('vmNorm').classList.toggle('active',mode==='normal');
+  $('vmZoom').classList.toggle('active',mode==='zoom');
+  $('vmMag').classList.toggle('active',mode==='magnify');
+  $('zoomAdj').style.display=mode==='zoom'?'flex':'none';
+  if(mode==='zoom'){
+    document.documentElement.style.zoom=zoomLevel;
+  }else{
+    document.documentElement.style.zoom='';
+  }
+  if(mode!=='magnify') $('magnifier').style.display='none';
+  resizeAll();
+  try{localStorage.setItem('fredViewMode',mode);}catch(e){}
+}
+function adjustZoom(delta){
+  zoomLevel=Math.round((zoomLevel+delta)*10)/10;
+  zoomLevel=Math.max(0.75,Math.min(1.5,zoomLevel));
+  $('zoomLevel').textContent=Math.round(zoomLevel*100)+'%';
+  document.documentElement.style.zoom=zoomLevel;
+  resizeAll();
+  try{localStorage.setItem('fredZoom',zoomLevel);}catch(e){}
+}
+
+$('vmNorm').addEventListener('click',()=>setViewMode('normal'));
+$('vmZoom').addEventListener('click',()=>setViewMode('zoom'));
+$('vmMag').addEventListener('click',()=>setViewMode('magnify'));
+$('zoomIn').addEventListener('click',()=>adjustZoom(0.1));
+$('zoomOut').addEventListener('click',()=>adjustZoom(-0.1));
+
+// Magnifier — canvas-to-canvas lens
+const MAG_SIZE=160, MAG_ZOOM=2.5;
+const magCanvas=$('magCanvas'), magCtx=magCanvas.getContext('2d');
+let magMX=0, magMY=0;
+
+document.addEventListener('mousemove',e=>{
+  if(viewMode!=='magnify')return;
+  magMX=e.clientX; magMY=e.clientY;
+  const mag=$('magnifier');
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const cv=el&&el.tagName==='CANVAS'?el:(el?el.closest&&el.closest('canvas'):null);
+  if(cv){
+    mag.style.display='block';
+    mag.style.left=(e.clientX-MAG_SIZE/2)+'px';
+    mag.style.top=(e.clientY-MAG_SIZE/2)+'px';
+    const cr=cv.getBoundingClientRect();
+    const sx=e.clientX-cr.left, sy=e.clientY-cr.top;
+    const sampleR=MAG_SIZE/(2*MAG_ZOOM);
+    const dpr=devicePixelRatio||1;
+    magCtx.clearRect(0,0,MAG_SIZE,MAG_SIZE);
+    magCtx.save();
+    magCtx.beginPath();
+    magCtx.arc(MAG_SIZE/2,MAG_SIZE/2,MAG_SIZE/2,0,Math.PI*2);
+    magCtx.clip();
+    magCtx.fillStyle='#0a101e';
+    magCtx.fillRect(0,0,MAG_SIZE,MAG_SIZE);
+    magCtx.drawImage(cv,
+      (sx-sampleR)*dpr,(sy-sampleR)*dpr,
+      sampleR*2*dpr,sampleR*2*dpr,
+      0,0,MAG_SIZE,MAG_SIZE);
+    // Crosshair
+    magCtx.strokeStyle='rgba(88,166,255,.3)';
+    magCtx.lineWidth=0.5;
+    magCtx.beginPath();
+    magCtx.moveTo(MAG_SIZE/2,0);magCtx.lineTo(MAG_SIZE/2,MAG_SIZE);
+    magCtx.moveTo(0,MAG_SIZE/2);magCtx.lineTo(MAG_SIZE,MAG_SIZE/2);
+    magCtx.stroke();
+    magCtx.restore();
+  }else{
+    mag.style.display='none';
+  }
+});
+document.addEventListener('mouseleave',()=>{
+  if(viewMode==='magnify') $('magnifier').style.display='none';
+});
+
 // Keyboard
 document.addEventListener('keydown',e=>{
+  // Zoom shortcuts
+  if((e.ctrlKey||e.metaKey)&&(e.key==='='||e.key==='+')){e.preventDefault();if(viewMode!=='zoom')setViewMode('zoom');adjustZoom(0.1);return;}
+  if((e.ctrlKey||e.metaKey)&&e.key==='-'){e.preventDefault();if(viewMode!=='zoom')setViewMode('zoom');adjustZoom(-0.1);return;}
+  if((e.ctrlKey||e.metaKey)&&e.key==='0'){e.preventDefault();zoomLevel=1.0;setViewMode('normal');return;}
+  // Magnifier toggle
+  if(e.key==='m'||e.key==='M'){if(!e.ctrlKey&&!e.metaKey){setViewMode(viewMode==='magnify'?'normal':'magnify');return;}}
   // Panel toggle keys 1-5 (skip when focused on input/select)
   const tag=document.activeElement?document.activeElement.tagName:'';
   if(e.key>='1'&&e.key<='5'&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&tag!=='INPUT'&&tag!=='SELECT'){
@@ -2135,6 +2256,13 @@ buildInvestDatePicker();
 updateUI();
 updateTogglePositions();
 restorePanelState();
+// Restore zoom/view mode
+try{
+  const sz=parseFloat(localStorage.getItem('fredZoom'));
+  if(sz>=0.75&&sz<=1.5) zoomLevel=sz;
+  const sv=localStorage.getItem('fredViewMode');
+  if(sv==='zoom'||sv==='magnify') setViewMode(sv);
+}catch(e){}
 window.addEventListener('resize',()=>{updateTogglePositions();});
 requestAnimationFrame(mainLoop);
 </script>
