@@ -1,1 +1,10 @@
 .claude/
+
+# Sibling project clones (each has its own git repo; not part of this repo)
+/BHLabs/
+/FreedomTracker-Web/
+/SAT-JKB/
+/Archive/
+
+# Claude-generated cleanup artifacts
+/REPO_INVENTORY_AND_PLAN.md
