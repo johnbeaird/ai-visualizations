@@ -1,0 +1,40 @@
+name: Deploy to GCS
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: gcs-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy FRED bucket
+        run: |
+          for f in index.html fred_terminal.html fred_dashboard.html fred_guide.html; do
+            gcloud storage cp "$f" gs://jkb-fred-viz/"$f"
+          done
+
+      - name: Deploy Visualizations bucket
+        run: |
+          for f in billboard_genre_race.html moores_law_vs_ai.html geminiMooreAI.html ai_moreGem2.html ai_three_engine_rocket.html ai_breakpoint_timeline.html cindy-retirement-party.html; do
+            gcloud storage cp "$f" gs://jkb-ai-viz/"$f"
+          done

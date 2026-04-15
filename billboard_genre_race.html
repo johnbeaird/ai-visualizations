@@ -157,6 +157,15 @@ let lastTime = 0;
 let displayValues = {};
 D.genres.forEach(g => displayValues[g] = D.cumulative[g][0]);
 
+// Track which genres have appeared (value > 0) — hidden until they emerge
+let activeGenres = new Set();
+function recalcActiveGenres(upToIdx) {
+  activeGenres.clear();
+  for (let i = 0; i <= upToIdx; i++) {
+    D.genres.forEach(g => { if (D.cumulative[g][i] > 0) activeGenres.add(g); });
+  }
+}
+
 // ── DOM ──
 const canvas = document.getElementById('raceChart');
 const ctx = canvas.getContext('2d');
@@ -227,10 +236,12 @@ function drawChart() {
     displayValues[g] = lerp(displayValues[g], target, 0.18);
     // Snap if very close
     if (Math.abs(displayValues[g] - target) < 0.5) displayValues[g] = target;
+    // Track genre emergence
+    if (D.cumulative[g][idx] > 0) activeGenres.add(g);
   });
 
-  // Sort by display value (ascending so biggest is on top)
-  const sorted = [...D.genres].sort((a,b) => displayValues[a] - displayValues[b]);
+  // Sort by display value (ascending so biggest is on top) — only active genres
+  const sorted = [...D.genres].filter(g => activeGenres.has(g)).sort((a,b) => displayValues[a] - displayValues[b]);
 
   const maxVal = Math.max(...D.genres.map(g => displayValues[g]), 1);
   const leftPad = 100;
@@ -296,9 +307,11 @@ function drawChart() {
 }
 
 // ── Side Panel ──
+let prevActiveCount = 0;
 function buildSidePanel() {
   sidePanel.innerHTML = '';
   D.genres.forEach(genre => {
+    if (!activeGenres.has(genre)) return;
     const gid = genre.replace(/[^a-zA-Z]/g,'');
     const card = document.createElement('div');
     card.className = 'genre-card';
@@ -325,6 +338,7 @@ function buildSidePanel() {
     });
     sidePanel.appendChild(card);
   });
+  prevActiveCount = activeGenres.size;
 }
 
 function getGenreInsight(genre, year) {
@@ -341,12 +355,16 @@ function getGenreInsight(genre, year) {
 }
 
 function updateSidePanel() {
+  // Rebuild panel when a new genre appears
+  if (activeGenres.size !== prevActiveCount) buildSidePanel();
+
   const idx = currentIdx;
-  const total = D.genres.reduce((s,g) => s + D.cumulative[g][idx], 0);
-  const ranked = [...D.genres].sort((a,b) => D.cumulative[b][idx] - D.cumulative[a][idx]);
+  const active = D.genres.filter(g => activeGenres.has(g));
+  const total = active.reduce((s,g) => s + D.cumulative[g][idx], 0);
+  const ranked = [...active].sort((a,b) => D.cumulative[b][idx] - D.cumulative[a][idx]);
   const m = D.months[idx];
 
-  D.genres.forEach(genre => {
+  active.forEach(genre => {
     const gid = genre.replace(/[^a-zA-Z]/g,'');
     const val = D.cumulative[genre][idx];
     const pct = total > 0 ? ((val/total)*100).toFixed(1) : '0.0';
@@ -410,6 +428,9 @@ playBtn.addEventListener('click', () => {
   if (playing && currentIdx >= D.months.length - 1) {
     currentIdx = 0;
     D.genres.forEach(g => displayValues[g] = 0);
+    activeGenres.clear();
+    prevActiveCount = 0;
+    buildSidePanel();
   }
   lastTime = 0;
 });
@@ -420,12 +441,17 @@ resetBtn.addEventListener('click', () => {
   playBtn.classList.remove('active');
   currentIdx = 0;
   D.genres.forEach(g => displayValues[g] = 0);
+  activeGenres.clear();
+  prevActiveCount = 0;
+  buildSidePanel();
   updateDisplay();
 });
 
 scrubber.addEventListener('input', e => {
   currentIdx = parseInt(e.target.value);
   D.genres.forEach(g => displayValues[g] = D.cumulative[g][currentIdx]);
+  recalcActiveGenres(currentIdx);
+  buildSidePanel();
   updateDisplay();
 });
 
@@ -438,6 +464,7 @@ speedBtn.addEventListener('click', () => {
 });
 
 // ── Init ──
+recalcActiveGenres(currentIdx);
 const ro = new ResizeObserver(() => { resizeCanvas(); });
 ro.observe(wrap);
 buildSidePanel();

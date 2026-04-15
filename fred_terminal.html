@@ -64,7 +64,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
 .canvas-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
 
 .main-chart{grid-column:2;grid-row:1;border-radius:0}
-.sub-charts{grid-column:2;grid-row:2;display:grid;grid-template-columns:1fr 1fr;
+.sub-charts{grid-column:2;grid-row:2;display:grid;grid-template-columns:1fr 1fr 1fr;
   overflow:hidden;transition:opacity .3s,filter .3s,transform .35s;transform-origin:bottom center}
 .sub-charts.three-col{grid-template-columns:1fr 1fr 1fr}
 @media(max-width:900px){.sub-charts{grid-column:1}}
@@ -241,9 +241,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
 .ctrl-speed{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
   cursor:pointer;user-select:none;min-width:26px;text-align:center;flex-shrink:0}
 .ctrl-speed:hover{color:var(--accent)}
-.kbd-hints{display:flex;gap:4px;margin-left:8px;flex-shrink:0}
-.kbd{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 5px;
-  border-radius:3px;background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+.kbd-hints{display:flex;gap:3px;margin-left:8px;flex-shrink:0;flex-wrap:wrap}
+.kbd{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;
+  border-radius:3px;background:var(--s3);color:var(--dim);border:1px solid var(--border);
+  cursor:default;display:inline-flex;align-items:center;gap:3px}
+.kbd .kl{color:var(--muted);font-size:7px;text-transform:uppercase;letter-spacing:.3px}
 @media(max-width:900px){.kbd-hints{display:none}}
 
 /* Guide link */
@@ -358,13 +360,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
 
 /* Tooltip styling */
 [title]{position:relative}
-[data-tip]{position:relative}
-[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;
-  transform:translateX(-50%);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Outfit',sans-serif;
-  background:rgba(10,16,30,.95);color:var(--text);border:1px solid var(--border2);
-  white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
-.left-bar [data-tip]:hover::after{left:0;transform:none;max-width:200px;white-space:normal}
-body.magnify [data-tip]:hover::after{display:none}
+#globalTip{position:fixed;padding:7px 14px;border-radius:6px;font-size:12px;font-family:'Outfit',sans-serif;
+  line-height:1.4;background:rgba(8,12,24,.97);color:#e2e8f0;border:1px solid rgba(88,166,255,.25);
+  z-index:9999;pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.6);max-width:320px;
+  opacity:0;transition:opacity .15s;white-space:normal}
+#globalTip.show{opacity:1}
 
 /* ── Collapse System ── */
 body.ticker-collapsed{--ticker-h:0px}
@@ -516,6 +516,7 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
 </style>
 </head>
 <body>
+<div id="globalTip"></div>
 
 <!-- Ticker -->
 <div class="ticker" id="ticker"></div>
@@ -587,11 +588,29 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
         </div>
       </div>
     </div>
+    <div class="side-sec" id="fredApiSection" style="display:none">
+      <div class="side-label">FRED API <span class="sec-toggle" id="fredApiToggle">&#9660;</span></div>
+      <div id="fredApiBody">
+        <div style="display:flex;gap:4px;margin-bottom:6px">
+          <input type="password" id="fredApiKeyInput" placeholder="Enter FRED API key" style="flex:1;background:var(--s2);border:1px solid var(--border);color:var(--fg);padding:3px 6px;border-radius:4px;font-size:10px;font-family:'JetBrains Mono',monospace">
+          <button id="fredApiSaveBtn" style="background:var(--accent);color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer">Save</button>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button id="fredRefreshBtn" style="background:var(--s3);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer">&#8635; Refresh All Series</button>
+          <span id="fredStatus" style="font-size:9px;font-family:'JetBrains Mono',monospace"></span>
+        </div>
+        <div class="whatif-note" style="margin-top:4px">Free key from <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color:var(--accent)">fred.stlouisfed.org</a>. Data cached in browser.</div>
+      </div>
+    </div>
     <div class="side-sec" id="whatifSection" style="display:none">
       <div class="side-label" data-tip="What-If Scenario: adjust one variable and see projected impacts">
         What-If <span class="sec-toggle" id="whatifToggle" data-tip="Show/hide scenario details">&#9660;</span>
       </div>
       <div id="whatifBody">
+        <div style="margin-bottom:6px">
+          <div class="side-label" style="font-size:8px;margin-bottom:3px">Presets</div>
+          <div id="scenarioPresets" style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px"></div>
+        </div>
         <div class="whatif-driver-row">
           <select id="whatifDriver"></select>
           <span style="font-size:9px;color:var(--dim)">=</span>
@@ -669,6 +688,10 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <div class="panel-header" id="sentChips"></div>
       <div class="canvas-wrap" id="sentWrap"><canvas id="sentCanvas"></canvas></div>
     </div>
+    <div class="panel" id="stressPanel">
+      <div class="panel-header" id="stressChips"></div>
+      <div class="canvas-wrap" id="stressWrap"><canvas id="stressCanvas"></canvas></div>
+    </div>
     <div class="panel" id="investChartPanel" style="display:none">
       <div class="panel-header"><span class="chip active" style="border-color:var(--accent);color:var(--accent)">Investment Growth</span></div>
       <div class="canvas-wrap" id="investChartWrap"><canvas id="investChartCanvas"></canvas></div>
@@ -702,6 +725,8 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
     <button class="cb mode" id="investBtn" data-tip="Investment simulator: see how your money would have grown (I)">INVEST</button>
     <button class="cb mode" id="alertBtn" data-tip="Toggle smart alerts — see when key thresholds are breached (A)">ALERT<span class="alert-badge" id="alertBadgeCtrl"></span></button>
     <button class="cb mode" id="whatifBtn" data-tip="What-If scenario: adjust a variable and see projected impacts (W)">W-IF</button>
+    <button class="cb mode" id="fredApiBtn" data-tip="FRED API: connect to live data and refresh series">API</button>
+    <span id="freshnessIndicator" style="font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--muted);padding:0 4px;cursor:pointer" data-tip="Last FRED data refresh time — click to open API panel"></span>
     <button class="cb" id="dashExportBtn" data-tip="Export full dashboard as PNG (X)">&#8681;</button>
     <a href="fred_guide.html" class="guide-link" data-tip="Open the Quick Start Guide">? Guide</a>
     <span class="version">v2.04</span>
@@ -716,10 +741,17 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
       <button id="zoomIn" data-tip="Zoom in">+</button>
     </div>
     <div class="kbd-hints">
-      <span class="kbd">Space</span><span class="kbd">&larr;&rarr;</span>
-      <span class="kbd">N</span><span class="kbd">E</span>
-      <span class="kbd">B</span><span class="kbd">I</span><span class="kbd">A</span><span class="kbd">W</span><span class="kbd">M</span><span class="kbd">X</span>
-      <span class="kbd">1-5 Panels</span>
+      <span class="kbd" data-tip="Play or pause the timeline animation">Space <span class="kl">Play</span></span>
+      <span class="kbd" data-tip="Scrub forward and backward through time">&larr;&rarr; <span class="kl">Scrub</span></span>
+      <span class="kbd" data-tip="Normalize all series to the same 0-100 scale">N <span class="kl">Normalize</span></span>
+      <span class="kbd" data-tip="Browse historical economic eras with descriptions">E <span class="kl">Eras</span></span>
+      <span class="kbd" data-tip="Enter your birthday to personalize the timeline">B <span class="kl">Birthday</span></span>
+      <span class="kbd" data-tip="Investment simulator — see how your money would have grown">I <span class="kl">Invest</span></span>
+      <span class="kbd" data-tip="Toggle threshold alerts for key economic conditions">A <span class="kl">Alerts</span></span>
+      <span class="kbd" data-tip="What-If scenario engine — adjust variables and see impacts">W <span class="kl">What-If</span></span>
+      <span class="kbd" data-tip="Magnify mode — lens effect on charts">M <span class="kl">Magnify</span></span>
+      <span class="kbd" data-tip="Export full dashboard as a PNG image">X <span class="kl">Export</span></span>
+      <span class="kbd" data-tip="Toggle panels: 1=Ticker  2=Left sidebar  3=Right sidebar  4=Sub-charts  5=Controls">1-5 <span class="kl">Panels</span></span>
     </div>
     <div class="ctrl-scroll-arrow right" id="ctrlScrollR">&#9654;</div>
   </div>
@@ -751,7 +783,28 @@ body.controls-collapsed .controls{max-height:0;opacity:0;padding-top:0;padding-b
 // DATA
 // ════════════════════════════════════════════════════════
 const D = {"months":[{"year":1960,"month":1},{"year":1960,"month":2},{"year":1960,"month":3},{"year":1960,"month":4},{"year":1960,"month":5},{"year":1960,"month":6},{"year":1960,"month":7},{"year":1960,"month":8},{"year":1960,"month":9},{"year":1960,"month":10},{"year":1960,"month":11},{"year":1960,"month":12},{"year":1961,"month":1},{"year":1961,"month":2},{"year":1961,"month":3},{"year":1961,"month":4},{"year":1961,"month":5},{"year":1961,"month":6},{"year":1961,"month":7},{"year":1961,"month":8},{"year":1961,"month":9},{"year":1961,"month":10},{"year":1961,"month":11},{"year":1961,"month":12},{"year":1962,"month":1},{"year":1962,"month":2},{"year":1962,"month":3},{"year":1962,"month":4},{"year":1962,"month":5},{"year":1962,"month":6},{"year":1962,"month":7},{"year":1962,"month":8},{"year":1962,"month":9},{"year":1962,"month":10},{"year":1962,"month":11},{"year":1962,"month":12},{"year":1963,"month":1},{"year":1963,"month":2},{"year":1963,"month":3},{"year":1963,"month":4},{"year":1963,"month":5},{"year":1963,"month":6},{"year":1963,"month":7},{"year":1963,"month":8},{"year":1963,"month":9},{"year":1963,"month":10},{"year":1963,"month":11},{"year":1963,"month":12},{"year":1964,"month":1},{"year":1964,"month":2},{"year":1964,"month":3},{"year":1964,"month":4},{"year":1964,"month":5},{"year":1964,"month":6},{"year":1964,"month":7},{"year":1964,"month":8},{"year":1964,"month":9},{"year":1964,"month":10},{"year":1964,"month":11},{"year":1964,"month":12},{"year":1965,"month":1},{"year":1965,"month":2},{"year":1965,"month":3},{"year":1965,"month":4},{"year":1965,"month":5},{"year":1965,"month":6},{"year":1965,"month":7},{"year":1965,"month":8},{"year":1965,"month":9},{"year":1965,"month":10},{"year":1965,"month":11},{"year":1965,"month":12},{"year":1966,"month":1},{"year":1966,"month":2},{"year":1966,"month":3},{"year":1966,"month":4},{"year":1966,"month":5},{"year":1966,"month":6},{"year":1966,"month":7},{"year":1966,"month":8},{"year":1966,"month":9},{"year":1966,"month":10},{"year":1966,"month":11},{"year":1966,"month":12},{"year":1967,"month":1},{"year":1967,"month":2},{"year":1967,"month":3},{"year":1967,"month":4},{"year":1967,"month":5},{"year":1967,"month":6},{"year":1967,"month":7},{"year":1967,"month":8},{"year":1967,"month":9},{"year":1967,"month":10},{"year":1967,"month":11},{"year":1967,"month":12},{"year":1968,"month":1},{"year":1968,"month":2},{"year":1968,"month":3},{"year":1968,"month":4},{"year":1968,"month":5},{"year":1968,"month":6},{"year":1968,"month":7},{"year":1968,"month":8},{"year":1968,"month":9},{"year":1968,"month":10},{"year":1968,"month":11},{"year":1968,"month":12},{"year":1969,"month":1},{"year":1969,"month":2},{"year":1969,"month":3},{"year":1969,"month":4},{"year":1969,"month":5},{"year":1969,"month":6},{"year":1969,"month":7},{"year":1969,"month":8},{"year":1969,"month":9},{"year":1969,"month":10},{"year":1969,"month":11},{"year":1969,"month":12},{"year":1970,"month":1},{"year":1970,"month":2},{"year":1970,"month":3},{"year":1970,"month":4},{"year":1970,"month":5},{"year":1970,"month":6},{"year":1970,"month":7},{"year":1970,"month":8},{"year":1970,"month":9},{"year":1970,"month":10},{"year":1970,"month":11},{"year":1970,"month":12},{"year":1971,"month":1},{"year":1971,"month":2},{"year":1971,"month":3},{"year":1971,"month":4},{"year":1971,"month":5},{"year":1971,"month":6},{"year":1971,"month":7},{"year":1971,"month":8},{"year":1971,"month":9},{"year":1971,"month":10},{"year":1971,"month":11},{"year":1971,"month":12},{"year":1972,"month":1},{"year":1972,"month":2},{"year":1972,"month":3},{"year":1972,"month":4},{"year":1972,"month":5},{"year":1972,"month":6},{"year":1972,"month":7},{"year":1972,"month":8},{"year":1972,"month":9},{"year":1972,"month":10},{"year":1972,"month":11},{"year":1972,"month":12},{"year":1973,"month":1},{"year":1973,"month":2},{"year":1973,"month":3},{"year":1973,"month":4},{"year":1973,"month":5},{"year":1973,"month":6},{"year":1973,"month":7},{"year":1973,"month":8},{"year":1973,"month":9},{"year":1973,"month":10},{"year":1973,"month":11},{"year":1973,"month":12},{"year":1974,"month":1},{"year":1974,"month":2},{"year":1974,"month":3},{"year":1974,"month":4},{"year":1974,"month":5},{"year":1974,"month":6},{"year":1974,"month":7},{"year":1974,"month":8},{"year":1974,"month":9},{"year":1974,"month":10},{"year":1974,"month":11},{"year":1974,"month":12},{"year":1975,"month":1},{"year":1975,"month":2},{"year":1975,"month":3},{"year":1975,"month":4},{"year":1975,"month":5},{"year":1975,"month":6},{"year":1975,"month":7},{"year":1975,"month":8},{"year":1975,"month":9},{"year":1975,"month":10},{"year":1975,"month":11},{"year":1975,"month":12},{"year":1976,"month":1},{"year":1976,"month":2},{"year":1976,"month":3},{"year":1976,"month":4},{"year":1976,"month":5},{"year":1976,"month":6},{"year":1976,"month":7},{"year":1976,"month":8},{"year":1976,"month":9},{"year":1976,"month":10},{"year":1976,"month":11},{"year":1976,"month":12},{"year":1977,"month":1},{"year":1977,"month":2},{"year":1977,"month":3},{"year":1977,"month":4},{"year":1977,"month":5},{"year":1977,"month":6},{"year":1977,"month":7},{"year":1977,"month":8},{"year":1977,"month":9},{"year":1977,"month":10},{"year":1977,"month":11},{"year":1977,"month":12},{"year":1978,"month":1},{"year":1978,"month":2},{"year":1978,"month":3},{"year":1978,"month":4},{"year":1978,"month":5},{"year":1978,"month":6},{"year":1978,"month":7},{"year":1978,"month":8},{"year":1978,"month":9},{"year":1978,"month":10},{"year":1978,"month":11},{"year":1978,"month":12},{"year":1979,"month":1},{"year":1979,"month":2},{"year":1979,"month":3},{"year":1979,"month":4},{"year":1979,"month":5},{"year":1979,"month":6},{"year":1979,"month":7},{"year":1979,"month":8},{"year":1979,"month":9},{"year":1979,"month":10},{"year":1979,"month":11},{"year":1979,"month":12},{"year":1980,"month":1},{"year":1980,"month":2},{"year":1980,"month":3},{"year":1980,"month":4},{"year":1980,"month":5},{"year":1980,"month":6},{"year":1980,"month":7},{"year":1980,"month":8},{"year":1980,"month":9},{"year":1980,"month":10},{"year":1980,"month":11},{"year":1980,"month":12},{"year":1981,"month":1},{"year":1981,"month":2},{"year":1981,"month":3},{"year":1981,"month":4},{"year":1981,"month":5},{"year":1981,"month":6},{"year":1981,"month":7},{"year":1981,"month":8},{"year":1981,"month":9},{"year":1981,"month":10},{"year":1981,"month":11},{"year":1981,"month":12},{"year":1982,"month":1},{"year":1982,"month":2},{"year":1982,"month":3},{"year":1982,"month":4},{"year":1982,"month":5},{"year":1982,"month":6},{"year":1982,"month":7},{"year":1982,"month":8},{"year":1982,"month":9},{"year":1982,"month":10},{"year":1982,"month":11},{"year":1982,"month":12},{"year":1983,"month":1},{"year":1983,"month":2},{"year":1983,"month":3},{"year":1983,"month":4},{"year":1983,"month":5},{"year":1983,"month":6},{"year":1983,"month":7},{"year":1983,"month":8},{"year":1983,"month":9},{"year":1983,"month":10},{"year":1983,"month":11},{"year":1983,"month":12},{"year":1984,"month":1},{"year":1984,"month":2},{"year":1984,"month":3},{"year":1984,"month":4},{"year":1984,"month":5},{"year":1984,"month":6},{"year":1984,"month":7},{"year":1984,"month":8},{"year":1984,"month":9},{"year":1984,"month":10},{"year":1984,"month":11},{"year":1984,"month":12},{"year":1985,"month":1},{"year":1985,"month":2},{"year":1985,"month":3},{"year":1985,"month":4},{"year":1985,"month":5},{"year":1985,"month":6},{"year":1985,"month":7},{"year":1985,"month":8},{"year":1985,"month":9},{"year":1985,"month":10},{"year":1985,"month":11},{"year":1985,"month":12},{"year":1986,"month":1},{"year":1986,"month":2},{"year":1986,"month":3},{"year":1986,"month":4},{"year":1986,"month":5},{"year":1986,"month":6},{"year":1986,"month":7},{"year":1986,"month":8},{"year":1986,"month":9},{"year":1986,"month":10},{"year":1986,"month":11},{"year":1986,"month":12},{"year":1987,"month":1},{"year":1987,"month":2},{"year":1987,"month":3},{"year":1987,"month":4},{"year":1987,"month":5},{"year":1987,"month":6},{"year":1987,"month":7},{"year":1987,"month":8},{"year":1987,"month":9},{"year":1987,"month":10},{"year":1987,"month":11},{"year":1987,"month":12},{"year":1988,"month":1},{"year":1988,"month":2},{"year":1988,"month":3},{"year":1988,"month":4},{"year":1988,"month":5},{"year":1988,"month":6},{"year":1988,"month":7},{"year":1988,"month":8},{"year":1988,"month":9},{"year":1988,"month":10},{"year":1988,"month":11},{"year":1988,"month":12},{"year":1989,"month":1},{"year":1989,"month":2},{"year":1989,"month":3},{"year":1989,"month":4},{"year":1989,"month":5},{"year":1989,"month":6},{"year":1989,"month":7},{"year":1989,"month":8},{"year":1989,"month":9},{"year":1989,"month":10},{"year":1989,"month":11},{"year":1989,"month":12},{"year":1990,"month":1},{"year":1990,"month":2},{"year":1990,"month":3},{"year":1990,"month":4},{"year":1990,"month":5},{"year":1990,"month":6},{"year":1990,"month":7},{"year":1990,"month":8},{"year":1990,"month":9},{"year":1990,"month":10},{"year":1990,"month":11},{"year":1990,"month":12},{"year":1991,"month":1},{"year":1991,"month":2},{"year":1991,"month":3},{"year":1991,"month":4},{"year":1991,"month":5},{"year":1991,"month":6},{"year":1991,"month":7},{"year":1991,"month":8},{"year":1991,"month":9},{"year":1991,"month":10},{"year":1991,"month":11},{"year":1991,"month":12},{"year":1992,"month":1},{"year":1992,"month":2},{"year":1992,"month":3},{"year":1992,"month":4},{"year":1992,"month":5},{"year":1992,"month":6},{"year":1992,"month":7},{"year":1992,"month":8},{"year":1992,"month":9},{"year":1992,"month":10},{"year":1992,"month":11},{"year":1992,"month":12},{"year":1993,"month":1},{"year":1993,"month":2},{"year":1993,"month":3},{"year":1993,"month":4},{"year":1993,"month":5},{"year":1993,"month":6},{"year":1993,"month":7},{"year":1993,"month":8},{"year":1993,"month":9},{"year":1993,"month":10},{"year":1993,"month":11},{"year":1993,"month":12},{"year":1994,"month":1},{"year":1994,"month":2},{"year":1994,"month":3},{"year":1994,"month":4},{"year":1994,"month":5},{"year":1994,"month":6},{"year":1994,"month":7},{"year":1994,"month":8},{"year":1994,"month":9},{"year":1994,"month":10},{"year":1994,"month":11},{"year":1994,"month":12},{"year":1995,"month":1},{"year":1995,"month":2},{"year":1995,"month":3},{"year":1995,"month":4},{"year":1995,"month":5},{"year":1995,"month":6},{"year":1995,"month":7},{"year":1995,"month":8},{"year":1995,"month":9},{"year":1995,"month":10},{"year":1995,"month":11},{"year":1995,"month":12},{"year":1996,"month":1},{"year":1996,"month":2},{"year":1996,"month":3},{"year":1996,"month":4},{"year":1996,"month":5},{"year":1996,"month":6},{"year":1996,"month":7},{"year":1996,"month":8},{"year":1996,"month":9},{"year":1996,"month":10},{"year":1996,"month":11},{"year":1996,"month":12},{"year":1997,"month":1},{"year":1997,"month":2},{"year":1997,"month":3},{"year":1997,"month":4},{"year":1997,"month":5},{"year":1997,"month":6},{"year":1997,"month":7},{"year":1997,"month":8},{"year":1997,"month":9},{"year":1997,"month":10},{"year":1997,"month":11},{"year":1997,"month":12},{"year":1998,"month":1},{"year":1998,"month":2},{"year":1998,"month":3},{"year":1998,"month":4},{"year":1998,"month":5},{"year":1998,"month":6},{"year":1998,"month":7},{"year":1998,"month":8},{"year":1998,"month":9},{"year":1998,"month":10},{"year":1998,"month":11},{"year":1998,"month":12},{"year":1999,"month":1},{"year":1999,"month":2},{"year":1999,"month":3},{"year":1999,"month":4},{"year":1999,"month":5},{"year":1999,"month":6},{"year":1999,"month":7},{"year":1999,"month":8},{"year":1999,"month":9},{"year":1999,"month":10},{"year":1999,"month":11},{"year":1999,"month":12},{"year":2000,"month":1},{"year":2000,"month":2},{"year":2000,"month":3},{"year":2000,"month":4},{"year":2000,"month":5},{"year":2000,"month":6},{"year":2000,"month":7},{"year":2000,"month":8},{"year":2000,"month":9},{"year":2000,"month":10},{"year":2000,"month":11},{"year":2000,"month":12},{"year":2001,"month":1},{"year":2001,"month":2},{"year":2001,"month":3},{"year":2001,"month":4},{"year":2001,"month":5},{"year":2001,"month":6},{"year":2001,"month":7},{"year":2001,"month":8},{"year":2001,"month":9},{"year":2001,"month":10},{"year":2001,"month":11},{"year":2001,"month":12},{"year":2002,"month":1},{"year":2002,"month":2},{"year":2002,"month":3},{"year":2002,"month":4},{"year":2002,"month":5},{"year":2002,"month":6},{"year":2002,"month":7},{"year":2002,"month":8},{"year":2002,"month":9},{"year":2002,"month":10},{"year":2002,"month":11},{"year":2002,"month":12},{"year":2003,"month":1},{"year":2003,"month":2},{"year":2003,"month":3},{"year":2003,"month":4},{"year":2003,"month":5},{"year":2003,"month":6},{"year":2003,"month":7},{"year":2003,"month":8},{"year":2003,"month":9},{"year":2003,"month":10},{"year":2003,"month":11},{"year":2003,"month":12},{"year":2004,"month":1},{"year":2004,"month":2},{"year":2004,"month":3},{"year":2004,"month":4},{"year":2004,"month":5},{"year":2004,"month":6},{"year":2004,"month":7},{"year":2004,"month":8},{"year":2004,"month":9},{"year":2004,"month":10},{"year":2004,"month":11},{"year":2004,"month":12},{"year":2005,"month":1},{"year":2005,"month":2},{"year":2005,"month":3},{"year":2005,"month":4},{"year":2005,"month":5},{"year":2005,"month":6},{"year":2005,"month":7},{"year":2005,"month":8},{"year":2005,"month":9},{"year":2005,"month":10},{"year":2005,"month":11},{"year":2005,"month":12},{"year":2006,"month":1},{"year":2006,"month":2},{"year":2006,"month":3},{"year":2006,"month":4},{"year":2006,"month":5},{"year":2006,"month":6},{"year":2006,"month":7},{"year":2006,"month":8},{"year":2006,"month":9},{"year":2006,"month":10},{"year":2006,"month":11},{"year":2006,"month":12},{"year":2007,"month":1},{"year":2007,"month":2},{"year":2007,"month":3},{"year":2007,"month":4},{"year":2007,"month":5},{"year":2007,"month":6},{"year":2007,"month":7},{"year":2007,"month":8},{"year":2007,"month":9},{"year":2007,"month":10},{"year":2007,"month":11},{"year":2007,"month":12},{"year":2008,"month":1},{"year":2008,"month":2},{"year":2008,"month":3},{"year":2008,"month":4},{"year":2008,"month":5},{"year":2008,"month":6},{"year":2008,"month":7},{"year":2008,"month":8},{"year":2008,"month":9},{"year":2008,"month":10},{"year":2008,"month":11},{"year":2008,"month":12},{"year":2009,"month":1},{"year":2009,"month":2},{"year":2009,"month":3},{"year":2009,"month":4},{"year":2009,"month":5},{"year":2009,"month":6},{"year":2009,"month":7},{"year":2009,"month":8},{"year":2009,"month":9},{"year":2009,"month":10},{"year":2009,"month":11},{"year":2009,"month":12},{"year":2010,"month":1},{"year":2010,"month":2},{"year":2010,"month":3},{"year":2010,"month":4},{"year":2010,"month":5},{"year":2010,"month":6},{"year":2010,"month":7},{"year":2010,"month":8},{"year":2010,"month":9},{"year":2010,"month":10},{"year":2010,"month":11},{"year":2010,"month":12},{"year":2011,"month":1},{"year":2011,"month":2},{"year":2011,"month":3},{"year":2011,"month":4},{"year":2011,"month":5},{"year":2011,"month":6},{"year":2011,"month":7},{"year":2011,"month":8},{"year":2011,"month":9},{"year":2011,"month":10},{"year":2011,"month":11},{"year":2011,"month":12},{"year":2012,"month":1},{"year":2012,"month":2},{"year":2012,"month":3},{"year":2012,"month":4},{"year":2012,"month":5},{"year":2012,"month":6},{"year":2012,"month":7},{"year":2012,"month":8},{"year":2012,"month":9},{"year":2012,"month":10},{"year":2012,"month":11},{"year":2012,"month":12},{"year":2013,"month":1},{"year":2013,"month":2},{"year":2013,"month":3},{"year":2013,"month":4},{"year":2013,"month":5},{"year":2013,"month":6},{"year":2013,"month":7},{"year":2013,"month":8},{"year":2013,"month":9},{"year":2013,"month":10},{"year":2013,"month":11},{"year":2013,"month":12},{"year":2014,"month":1},{"year":2014,"month":2},{"year":2014,"month":3},{"year":2014,"month":4},{"year":2014,"month":5},{"year":2014,"month":6},{"year":2014,"month":7},{"year":2014,"month":8},{"year":2014,"month":9},{"year":2014,"month":10},{"year":2014,"month":11},{"year":2014,"month":12},{"year":2015,"month":1},{"year":2015,"month":2},{"year":2015,"month":3},{"year":2015,"month":4},{"year":2015,"month":5},{"year":2015,"month":6},{"year":2015,"month":7},{"year":2015,"month":8},{"year":2015,"month":9},{"year":2015,"month":10},{"year":2015,"month":11},{"year":2015,"month":12},{"year":2016,"month":1},{"year":2016,"month":2},{"year":2016,"month":3},{"year":2016,"month":4},{"year":2016,"month":5},{"year":2016,"month":6},{"year":2016,"month":7},{"year":2016,"month":8},{"year":2016,"month":9},{"year":2016,"month":10},{"year":2016,"month":11},{"year":2016,"month":12},{"year":2017,"month":1},{"year":2017,"month":2},{"year":2017,"month":3},{"year":2017,"month":4},{"year":2017,"month":5},{"year":2017,"month":6},{"year":2017,"month":7},{"year":2017,"month":8},{"year":2017,"month":9},{"year":2017,"month":10},{"year":2017,"month":11},{"year":2017,"month":12},{"year":2018,"month":1},{"year":2018,"month":2},{"year":2018,"month":3},{"year":2018,"month":4},{"year":2018,"month":5},{"year":2018,"month":6},{"year":2018,"month":7},{"year":2018,"month":8},{"year":2018,"month":9},{"year":2018,"month":10},{"year":2018,"month":11},{"year":2018,"month":12},{"year":2019,"month":1},{"year":2019,"month":2},{"year":2019,"month":3},{"year":2019,"month":4},{"year":2019,"month":5},{"year":2019,"month":6},{"year":2019,"month":7},{"year":2019,"month":8},{"year":2019,"month":9},{"year":2019,"month":10},{"year":2019,"month":11},{"year":2019,"month":12},{"year":2020,"month":1},{"year":2020,"month":2},{"year":2020,"month":3},{"year":2020,"month":4},{"year":2020,"month":5},{"year":2020,"month":6},{"year":2020,"month":7},{"year":2020,"month":8},{"year":2020,"month":9},{"year":2020,"month":10},{"year":2020,"month":11},{"year":2020,"month":12},{"year":2021,"month":1},{"year":2021,"month":2},{"year":2021,"month":3},{"year":2021,"month":4},{"year":2021,"month":5},{"year":2021,"month":6},{"year":2021,"month":7},{"year":2021,"month":8},{"year":2021,"month":9},{"year":2021,"month":10},{"year":2021,"month":11},{"year":2021,"month":12},{"year":2022,"month":1},{"year":2022,"month":2},{"year":2022,"month":3},{"year":2022,"month":4},{"year":2022,"month":5},{"year":2022,"month":6},{"year":2022,"month":7},{"year":2022,"month":8},{"year":2022,"month":9},{"year":2022,"month":10},{"year":2022,"month":11},{"year":2022,"month":12},{"year":2023,"month":1},{"year":2023,"month":2},{"year":2023,"month":3},{"year":2023,"month":4},{"year":2023,"month":5},{"year":2023,"month":6},{"year":2023,"month":7},{"year":2023,"month":8},{"year":2023,"month":9},{"year":2023,"month":10},{"year":2023,"month":11},{"year":2023,"month":12},{"year":2024,"month":1},{"year":2024,"month":2},{"year":2024,"month":3},{"year":2024,"month":4},{"year":2024,"month":5},{"year":2024,"month":6},{"year":2024,"month":7},{"year":2024,"month":8},{"year":2024,"month":9},{"year":2024,"month":10},{"year":2024,"month":11},{"year":2024,"month":12},{"year":2025,"month":1},{"year":2025,"month":2},{"year":2025,"month":3},{"year":2025,"month":4},{"year":2025,"month":5},{"year":2025,"month":6},{"year":2025,"month":7},{"year":2025,"month":8},{"year":2025,"month":9},{"year":2025,"month":10},{"year":2025,"month":11},{"year":2025,"month":12}],"series":{"fed_funds":{"name":"Federal Funds Rate","short":"Fed Funds","unit":"%","color":"#818cf8","fred":"FEDFUNDS","panel":"rates","data":[3.93,3.77,3.6,3.44,3.27,3.11,2.95,2.78,2.62,2.45,2.29,2.12,1.96,2.02,2.09,2.15,2.21,2.27,2.33,2.4,2.46,2.52,2.58,2.65,2.71,2.75,2.79,2.83,2.87,2.91,2.95,2.98,3.02,3.06,3.1,3.14,3.18,3.21,3.23,3.26,3.29,3.31,3.34,3.37,3.39,3.42,3.45,3.47,3.5,3.55,3.6,3.64,3.69,3.74,3.79,3.83,3.88,3.93,3.97,4.02,4.07,4.16,4.24,4.33,4.42,4.5,4.59,4.68,4.76,4.85,4.94,5.02,5.11,5.04,4.96,4.89,4.81,4.74,4.67,4.59,4.52,4.44,4.37,4.29,4.22,4.34,4.46,4.58,4.7,4.82,4.94,5.06,5.18,5.3,5.42,5.54,5.66,5.87,6.09,6.3,6.51,6.72,6.94,7.15,7.36,7.57,7.78,8.0,8.21,8.12,8.04,7.95,7.86,7.78,7.69,7.6,7.52,7.43,7.34,7.26,7.17,6.96,6.75,6.54,6.34,6.13,5.92,5.71,5.5,5.29,5.09,4.88,4.67,4.65,4.63,4.61,4.59,4.57,4.55,4.54,4.52,4.5,4.48,4.46,4.44,4.8,5.16,5.52,5.87,6.23,6.59,6.95,7.31,7.67,8.02,8.38,8.74,8.89,9.04,9.18,9.33,9.48,9.62,9.77,9.92,10.07,10.21,10.36,10.51,10.12,9.73,9.34,8.95,8.56,8.16,7.77,7.38,6.99,6.6,6.21,5.82,5.76,5.69,5.63,5.56,5.5,5.44,5.37,5.31,5.24,5.18,5.11,5.05,5.09,5.13,5.17,5.21,5.25,5.29,5.34,5.38,5.42,5.46,5.5,5.54,5.74,5.94,6.14,6.34,6.54,6.74,6.94,7.14,7.34,7.54,7.74,7.94,8.21,8.48,8.76,9.03,9.3,9.57,9.84,10.11,10.38,10.66,10.93,11.2,11.38,11.56,11.74,11.92,12.1,12.27,12.45,12.63,12.81,12.99,13.17,13.35,14.27,15.2,16.12,17.05,17.98,18.9,18.48,18.06,17.64,17.23,16.81,16.39,16.84,17.29,17.75,18.2,18.65,19.1,17.96,16.82,15.68,14.54,13.4,12.26,12.0,11.73,11.47,11.2,10.94,10.68,10.41,10.15,9.88,9.62,9.35,9.09,9.18,9.28,9.38,9.47,9.57,9.66,9.75,9.85,9.95,10.04,10.14,10.23,10.05,9.87,9.7,9.52,9.34,9.16,8.99,8.81,8.63,8.46,8.28,8.1,7.99,7.88,7.78,7.67,7.56,7.46,7.35,7.24,7.13,7.03,6.92,6.81,6.8,6.78,6.77,6.76,6.75,6.73,6.72,6.71,6.7,6.69,6.67,6.66,6.74,6.81,6.89,6.96,7.04,7.12,7.19,7.27,7.34,7.42,7.49,7.57,7.71,7.84,7.98,8.12,8.25,8.39,8.53,8.66,8.8,8.94,9.07,9.21,9.12,9.02,8.93,8.84,8.75,8.66,8.56,8.47,8.38,8.29,8.19,8.1,7.9,7.7,7.5,7.3,7.1,6.89,6.69,6.49,6.29,6.09,5.89,5.69,5.51,5.33,5.15,4.97,4.79,4.61,4.42,4.24,4.06,3.88,3.7,3.52,3.48,3.44,3.4,3.35,3.31,3.27,3.23,3.19,3.15,3.1,3.06,3.02,3.12,3.22,3.32,3.42,3.52,3.62,3.71,3.81,3.91,4.01,4.11,4.21,4.34,4.48,4.62,4.75,4.89,5.02,5.15,5.29,5.42,5.56,5.7,5.83,5.79,5.74,5.7,5.65,5.61,5.56,5.52,5.48,5.43,5.39,5.34,5.3,5.31,5.33,5.34,5.35,5.37,5.38,5.39,5.41,5.42,5.43,5.45,5.46,5.45,5.44,5.43,5.42,5.41,5.4,5.4,5.39,5.38,5.37,5.36,5.35,5.32,5.29,5.25,5.22,5.19,5.16,5.13,5.1,5.06,5.03,5.0,4.97,5.08,5.18,5.29,5.39,5.5,5.61,5.71,5.82,5.92,6.03,6.13,6.24,6.04,5.85,5.65,5.45,5.26,5.06,4.86,4.67,4.47,4.27,4.08,3.88,3.65,3.42,3.19,2.96,2.74,2.51,2.28,2.05,1.82,1.79,1.76,1.73,1.68,1.63,1.58,1.53,1.48,1.43,1.38,1.33,1.28,1.23,1.18,1.13,1.15,1.17,1.19,1.2,1.22,1.24,1.26,1.28,1.29,1.31,1.33,1.35,1.51,1.66,1.82,1.97,2.13,2.29,2.44,2.6,2.75,2.91,3.06,3.22,3.37,3.51,3.66,3.8,3.95,4.09,4.24,4.39,4.53,4.68,4.82,4.97,4.97,4.98,4.98,4.99,4.99,4.99,5.0,5.0,5.01,5.01,5.02,5.02,4.93,4.85,4.76,4.67,4.59,4.5,4.41,4.33,4.24,3.52,2.81,2.09,1.91,1.73,1.55,1.38,1.2,1.02,0.84,0.66,0.48,0.3,0.15,0.12,0.12,0.13,0.14,0.14,0.15,0.15,0.15,0.16,0.16,0.17,0.18,0.18,0.17,0.17,0.16,0.15,0.15,0.14,0.13,0.13,0.12,0.11,0.11,0.1,0.1,0.11,0.11,0.11,0.12,0.12,0.12,0.13,0.13,0.13,0.14,0.14,0.14,0.13,0.13,0.13,0.13,0.12,0.12,0.12,0.12,0.12,0.11,0.11,0.11,0.11,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.09,0.09,0.09,0.09,0.1,0.1,0.1,0.11,0.11,0.11,0.12,0.12,0.12,0.13,0.13,0.15,0.17,0.19,0.21,0.23,0.25,0.27,0.29,0.31,0.33,0.35,0.41,0.46,0.51,0.56,0.61,0.66,0.71,0.75,0.8,0.85,0.9,0.95,1.0,1.07,1.14,1.21,1.28,1.35,1.42,1.48,1.55,1.62,1.69,1.76,1.83,1.88,1.94,1.99,2.04,2.09,2.15,2.2,2.25,2.3,2.36,2.4,2.4,2.31,2.21,2.12,2.02,1.93,1.83,1.74,1.64,1.55,1.55,1.55,1.55,1.05,0.55,0.05,0.05,0.06,0.06,0.06,0.07,0.07,0.07,0.08,0.08,0.1,0.12,0.14,0.16,0.18,0.21,0.23,0.25,0.27,0.29,0.31,0.33,0.5,0.66,0.83,1.33,1.83,2.33,2.83,3.33,3.83,4.08,4.32,4.57,4.7,4.82,4.95,5.08,5.2,5.33,5.33,5.33,5.33,5.33,5.33,5.33,5.27,5.21,5.15,5.09,5.03,4.97,4.91,4.85,4.75,4.61,4.47,4.33,4.33,4.33,4.33,4.33,4.33,4.33,4.33,4.33,4.33,4.33,4.33]},"cpi":{"name":"CPI Inflation (YoY)","short":"CPI","unit":"%","color":"#f97316","fred":"CPIAUCSL","panel":"rates","data":[1.7,1.64,1.58,1.52,1.47,1.41,1.35,1.29,1.23,1.18,1.12,1.06,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.02,1.05,1.07,1.1,1.13,1.15,1.17,1.2,1.23,1.25,1.28,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.3,1.32,1.35,1.38,1.4,1.43,1.45,1.47,1.5,1.53,1.55,1.58,1.6,1.71,1.82,1.93,2.03,2.14,2.25,2.36,2.47,2.58,2.68,2.79,2.9,2.92,2.93,2.95,2.97,2.98,3.0,3.02,3.03,3.05,3.07,3.08,3.1,3.19,3.28,3.38,3.47,3.56,3.65,3.74,3.83,3.93,4.02,4.11,4.2,4.31,4.42,4.53,4.63,4.74,4.85,4.96,5.07,5.17,5.28,5.39,5.5,5.52,5.53,5.55,5.57,5.58,5.6,5.62,5.63,5.65,5.67,5.68,5.7,5.59,5.48,5.38,5.27,5.16,5.05,4.94,4.83,4.73,4.62,4.51,4.4,4.3,4.2,4.1,4.0,3.9,3.8,3.7,3.6,3.5,3.4,3.3,3.2,3.45,3.7,3.95,4.2,4.45,4.7,4.95,5.2,5.45,5.7,5.95,6.2,6.6,7.0,7.4,7.8,8.2,8.6,9.0,9.4,9.8,10.2,10.6,11.0,10.84,10.68,10.53,10.37,10.21,10.05,9.89,9.73,9.57,9.42,9.26,9.1,8.83,8.55,8.28,8.0,7.72,7.45,7.18,6.9,6.62,6.35,6.07,5.8,5.86,5.92,5.97,6.03,6.09,6.15,6.21,6.27,6.33,6.38,6.44,6.5,6.59,6.68,6.78,6.87,6.96,7.05,7.14,7.23,7.32,7.42,7.51,7.6,7.91,8.22,8.53,8.83,9.14,9.45,9.76,10.07,10.38,10.68,10.99,11.3,11.48,11.67,11.85,12.03,12.22,12.4,12.58,12.77,12.95,13.13,13.32,13.5,13.23,12.97,12.7,12.43,12.17,11.9,11.63,11.37,11.1,10.83,10.57,10.3,9.96,9.62,9.28,8.93,8.59,8.25,7.91,7.57,7.23,6.88,6.54,6.2,5.95,5.7,5.45,5.2,4.95,4.7,4.45,4.2,3.95,3.7,3.45,3.2,3.29,3.38,3.48,3.57,3.66,3.75,3.84,3.93,4.03,4.12,4.21,4.3,4.24,4.18,4.12,4.07,4.01,3.95,3.89,3.83,3.77,3.72,3.66,3.6,3.46,3.32,3.17,3.03,2.89,2.75,2.61,2.47,2.33,2.18,2.04,1.9,2.04,2.18,2.33,2.47,2.61,2.75,2.89,3.03,3.17,3.32,3.46,3.6,3.64,3.68,3.73,3.77,3.81,3.85,3.89,3.93,3.97,4.02,4.06,4.1,4.16,4.22,4.27,4.33,4.39,4.45,4.51,4.57,4.62,4.68,4.74,4.8,4.85,4.9,4.95,5.0,5.05,5.1,5.15,5.2,5.25,5.3,5.35,5.4,5.3,5.2,5.1,5.0,4.9,4.8,4.7,4.6,4.5,4.4,4.3,4.2,4.1,4.0,3.9,3.8,3.7,3.6,3.5,3.4,3.3,3.2,3.1,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,2.97,2.93,2.9,2.87,2.83,2.8,2.77,2.73,2.7,2.67,2.63,2.6,2.62,2.63,2.65,2.67,2.68,2.7,2.72,2.73,2.75,2.77,2.78,2.8,2.82,2.83,2.85,2.87,2.88,2.9,2.92,2.93,2.95,2.97,2.98,3.0,2.94,2.88,2.83,2.77,2.71,2.65,2.59,2.53,2.47,2.42,2.36,2.3,2.24,2.18,2.12,2.07,2.01,1.95,1.89,1.83,1.77,1.72,1.66,1.6,1.65,1.7,1.75,1.8,1.85,1.9,1.95,2.0,2.05,2.1,2.15,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.35,3.3,3.25,3.2,3.15,3.1,3.05,3.0,2.95,2.9,2.85,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.0,1.9,1.8,1.7,1.6,1.66,1.72,1.77,1.83,1.89,1.95,2.01,2.07,2.12,2.18,2.24,2.3,2.33,2.37,2.4,2.43,2.47,2.5,2.53,2.57,2.6,2.63,2.67,2.7,2.76,2.82,2.88,2.93,2.99,3.05,3.11,3.17,3.23,3.28,3.34,3.4,3.38,3.37,3.35,3.33,3.32,3.3,3.28,3.27,3.25,3.23,3.22,3.2,3.17,3.13,3.1,3.07,3.03,3.0,2.97,2.93,2.9,2.87,2.83,2.8,2.88,2.97,3.05,3.13,3.22,3.3,3.38,3.47,3.55,3.63,3.72,3.8,3.39,2.98,2.57,2.16,1.74,1.33,0.92,0.51,0.1,-0.07,-0.23,-0.4,-0.57,-0.73,-0.9,-1.07,-1.23,-1.4,-0.43,0.53,1.5,1.53,1.57,1.6,1.73,1.87,2.0,2.13,2.27,2.4,2.53,2.67,2.8,2.93,3.07,3.2,3.11,3.02,2.93,2.83,2.74,2.65,2.56,2.47,2.38,2.28,2.19,2.1,2.05,2.0,1.95,1.9,1.85,1.8,1.75,1.7,1.65,1.6,1.55,1.5,1.51,1.52,1.52,1.53,1.54,1.55,1.56,1.57,1.58,1.58,1.59,1.6,1.48,1.35,1.23,1.1,0.97,0.85,0.73,0.6,0.48,0.35,0.22,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.37,1.43,1.5,1.57,1.63,1.7,1.77,1.83,1.9,1.97,2.03,2.1,2.12,2.15,2.17,2.2,2.23,2.25,2.27,2.3,2.33,2.35,2.38,2.4,2.35,2.3,2.25,2.2,2.15,2.1,2.05,2.0,1.95,1.9,1.85,1.8,1.75,1.7,1.65,1.6,1.55,1.5,1.45,1.4,1.35,1.3,1.25,1.2,1.1,1.0,0.9,0.8,0.7,0.6,0.73,0.87,1.0,1.13,1.27,1.4,2.07,2.73,3.4,4.07,4.73,5.4,5.75,6.1,6.45,6.8,7.15,7.5,7.77,8.03,8.3,8.57,8.83,9.1,8.63,8.17,7.7,7.27,6.83,6.4,5.83,5.27,4.7,4.13,3.57,3.0,3.02,3.03,3.05,3.07,3.08,3.1,3.07,3.03,3.0,2.97,2.93,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9]},"gs10":{"name":"10-Year Treasury Yield","short":"10Y Yield","unit":"%","color":"#22d3ee","fred":"GS10","panel":"rates","data":[4.12,4.1,4.08,4.06,4.04,4.02,4.0,3.98,3.96,3.94,3.92,3.9,3.88,3.89,3.89,3.9,3.9,3.91,3.92,3.92,3.93,3.93,3.94,3.94,3.95,3.95,3.96,3.96,3.97,3.97,3.98,3.98,3.98,3.99,3.99,4.0,4.0,4.01,4.03,4.04,4.05,4.06,4.08,4.09,4.1,4.11,4.12,4.14,4.15,4.15,4.16,4.17,4.17,4.18,4.18,4.18,4.19,4.2,4.2,4.21,4.21,4.27,4.33,4.39,4.45,4.51,4.56,4.62,4.68,4.74,4.8,4.86,4.92,4.91,4.91,4.9,4.9,4.89,4.88,4.88,4.87,4.87,4.86,4.86,4.85,4.92,4.98,5.05,5.12,5.18,5.25,5.32,5.38,5.45,5.52,5.58,5.65,5.73,5.82,5.91,5.99,6.08,6.16,6.24,6.33,6.42,6.5,6.59,6.67,6.73,6.78,6.84,6.9,6.95,7.01,7.07,7.12,7.18,7.24,7.29,7.35,7.25,7.15,7.05,6.95,6.85,6.75,6.66,6.56,6.46,6.36,6.26,6.16,6.16,6.17,6.17,6.18,6.18,6.19,6.19,6.19,6.2,6.2,6.21,6.21,6.26,6.32,6.37,6.42,6.47,6.53,6.58,6.63,6.68,6.73,6.79,6.84,6.9,6.96,7.02,7.08,7.14,7.2,7.26,7.32,7.38,7.44,7.5,7.56,7.6,7.63,7.67,7.7,7.74,7.78,7.81,7.85,7.88,7.92,7.95,7.99,7.96,7.93,7.9,7.86,7.83,7.8,7.77,7.74,7.71,7.67,7.64,7.61,7.59,7.58,7.56,7.55,7.53,7.52,7.5,7.48,7.47,7.45,7.44,7.42,7.5,7.59,7.67,7.75,7.83,7.92,8.0,8.08,8.16,8.24,8.33,8.41,8.5,8.58,8.67,8.75,8.84,8.93,9.01,9.1,9.18,9.27,9.35,9.44,9.61,9.78,9.95,10.11,10.28,10.45,10.62,10.79,10.96,11.12,11.29,11.46,11.66,11.87,12.07,12.28,12.48,12.69,12.89,13.09,13.3,13.5,13.71,13.91,14.06,14.2,14.35,14.5,14.64,14.79,14.94,15.09,15.23,14.93,13.97,13.0,12.84,12.68,12.53,12.37,12.21,12.05,11.89,11.73,11.57,11.42,11.26,11.1,11.21,11.32,11.43,11.55,11.66,11.77,11.88,11.99,12.11,12.22,12.33,12.44,12.29,12.14,11.98,11.83,11.68,11.53,11.38,11.23,11.07,10.92,10.77,10.62,10.37,10.13,9.88,9.64,9.39,9.14,8.9,8.65,8.41,8.16,7.92,7.67,7.73,7.79,7.85,7.91,7.97,8.03,8.09,8.15,8.21,8.27,8.33,8.39,8.43,8.47,8.51,8.54,8.58,8.62,8.66,8.7,8.73,8.77,8.81,8.85,8.82,8.79,8.76,8.73,8.7,8.67,8.64,8.61,8.58,8.55,8.52,8.49,8.49,8.5,8.51,8.51,8.52,8.52,8.52,8.53,8.54,8.54,8.55,8.55,8.49,8.43,8.38,8.32,8.26,8.21,8.15,8.09,8.03,7.98,7.92,7.86,7.79,7.72,7.65,7.58,7.51,7.44,7.36,7.29,7.22,7.15,7.08,7.01,6.92,6.82,6.72,6.63,6.53,6.44,6.35,6.25,6.16,6.06,5.96,5.87,5.97,6.07,6.17,6.28,6.38,6.48,6.58,6.68,6.79,6.89,6.99,7.09,7.05,7.0,6.96,6.92,6.87,6.83,6.79,6.74,6.7,6.66,6.61,6.57,6.56,6.55,6.54,6.53,6.52,6.51,6.49,6.48,6.47,6.46,6.45,6.44,6.43,6.42,6.42,6.41,6.4,6.39,6.39,6.38,6.37,6.37,6.36,6.35,6.26,6.17,6.08,5.99,5.9,5.8,5.71,5.62,5.53,5.44,5.35,5.26,5.29,5.33,5.36,5.39,5.42,5.46,5.49,5.52,5.55,5.58,5.62,5.65,5.68,5.71,5.75,5.78,5.81,5.84,5.87,5.9,5.94,5.97,6.0,6.03,5.95,5.86,5.78,5.69,5.61,5.53,5.44,5.36,5.27,5.19,5.1,5.02,4.99,4.95,4.92,4.88,4.85,4.81,4.78,4.75,4.71,4.68,4.64,4.61,4.56,4.51,4.46,4.41,4.36,4.31,4.26,4.21,4.16,4.11,4.06,4.01,4.03,4.05,4.07,4.1,4.12,4.14,4.16,4.18,4.21,4.23,4.25,4.27,4.27,4.27,4.27,4.28,4.28,4.28,4.28,4.28,4.29,4.29,4.29,4.29,4.33,4.37,4.42,4.46,4.5,4.54,4.58,4.62,4.67,4.71,4.75,4.79,4.78,4.76,4.75,4.74,4.72,4.71,4.7,4.68,4.67,4.66,4.64,4.63,4.55,4.47,4.39,4.31,4.23,4.14,4.06,3.98,3.9,3.82,3.74,3.66,3.63,3.59,3.56,3.53,3.49,3.46,3.43,3.39,3.36,3.33,3.29,3.26,3.26,3.25,3.25,3.25,3.24,3.24,3.24,3.23,3.23,3.23,3.22,3.22,3.18,3.15,3.11,3.07,3.04,3.0,2.96,2.93,2.89,2.85,2.82,2.78,2.7,2.62,2.53,2.45,2.37,2.29,2.21,2.13,2.04,1.96,1.88,1.8,1.85,1.89,1.94,1.98,2.03,2.08,2.12,2.17,2.21,2.26,2.3,2.35,2.37,2.38,2.4,2.41,2.43,2.45,2.46,2.48,2.49,2.51,2.52,2.54,2.51,2.47,2.44,2.41,2.37,2.34,2.31,2.27,2.24,2.21,2.17,2.14,2.12,2.09,2.06,2.04,2.01,1.99,1.97,1.94,1.92,1.89,1.86,1.84,1.88,1.92,1.96,2.0,2.04,2.08,2.13,2.17,2.21,2.25,2.29,2.33,2.38,2.43,2.48,2.52,2.57,2.62,2.67,2.72,2.77,2.81,2.86,2.91,2.85,2.78,2.72,2.65,2.59,2.53,2.46,2.4,2.33,2.27,2.2,2.14,2.04,1.93,1.83,1.72,1.62,1.52,1.41,1.31,1.2,1.1,0.99,0.89,0.86,0.82,0.79,0.75,0.72,0.68,0.65,0.72,0.81,0.9,1.0,1.09,1.27,1.45,1.63,1.64,1.66,1.67,1.69,1.7,1.72,1.73,1.75,1.76,1.96,2.17,2.37,2.57,2.78,2.98,3.18,3.38,3.59,3.79,3.85,3.88,3.95,4.03,4.1,4.18,4.25,4.32,4.4,4.47,4.55,4.48,4.22,3.95,4.02,4.09,4.16,4.22,4.29,4.36,4.39,4.43,4.46,4.5,4.54,4.57,4.53,4.49,4.49,4.49,4.49,4.49,4.49,4.49,4.49,4.49,4.49]},"unrate":{"name":"Unemployment Rate","short":"Unemployment","unit":"%","color":"#f43f5e","fred":"UNRATE","panel":"rates","data":[5.5,5.6,5.7,5.8,5.9,6.0,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.6,6.5,6.4,6.3,6.2,6.1,6.0,5.9,5.8,5.7,5.6,5.5,5.52,5.53,5.55,5.57,5.58,5.6,5.62,5.63,5.65,5.67,5.68,5.7,5.66,5.62,5.58,5.53,5.49,5.45,5.41,5.37,5.33,5.28,5.24,5.2,5.14,5.08,5.03,4.97,4.91,4.85,4.79,4.73,4.67,4.62,4.56,4.5,4.44,4.38,4.33,4.27,4.21,4.15,4.09,4.03,3.97,3.92,3.86,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.78,3.77,3.75,3.73,3.72,3.7,3.68,3.67,3.65,3.63,3.62,3.6,3.59,3.58,3.58,3.57,3.56,3.55,3.54,3.53,3.52,3.52,3.51,3.5,3.62,3.73,3.85,3.97,4.08,4.2,4.32,4.43,4.55,4.67,4.78,4.9,4.98,5.07,5.15,5.23,5.32,5.4,5.48,5.57,5.65,5.73,5.82,5.9,5.88,5.85,5.83,5.8,5.77,5.75,5.73,5.7,5.67,5.65,5.62,5.6,5.54,5.48,5.42,5.37,5.31,5.25,5.19,5.13,5.08,5.02,4.96,4.9,4.96,5.02,5.08,5.13,5.19,5.25,5.31,5.37,5.42,5.48,5.54,5.6,5.84,6.08,6.32,6.57,6.81,7.05,7.29,7.53,7.78,8.02,8.26,8.5,8.43,8.37,8.3,8.23,8.17,8.1,8.03,7.97,7.9,7.83,7.77,7.7,7.65,7.6,7.55,7.5,7.45,7.4,7.35,7.3,7.25,7.2,7.15,7.1,7.02,6.93,6.85,6.77,6.68,6.6,6.52,6.43,6.35,6.27,6.18,6.1,6.08,6.05,6.02,6.0,5.97,5.95,5.93,5.9,5.88,5.85,5.82,5.8,5.91,6.02,6.12,6.23,6.34,6.45,6.56,6.67,6.77,6.88,6.99,7.1,7.14,7.18,7.22,7.27,7.31,7.35,7.39,7.43,7.47,7.52,7.56,7.6,7.77,7.95,8.12,8.3,8.48,8.65,8.82,9.0,9.17,9.35,9.53,9.7,9.8,9.9,10.01,10.11,10.21,10.31,10.41,10.51,10.62,10.72,10.68,10.1,9.88,9.67,9.45,9.23,9.02,8.8,8.58,8.37,8.15,7.93,7.72,7.5,7.48,7.45,7.42,7.4,7.37,7.35,7.33,7.3,7.28,7.25,7.22,7.2,7.18,7.17,7.15,7.13,7.12,7.1,7.08,7.07,7.05,7.03,7.02,7.0,6.93,6.87,6.8,6.73,6.67,6.6,6.53,6.47,6.4,6.33,6.27,6.2,6.14,6.08,6.03,5.97,5.91,5.85,5.79,5.73,5.67,5.62,5.56,5.5,5.48,5.47,5.45,5.43,5.42,5.4,5.38,5.37,5.35,5.33,5.32,5.3,5.32,5.35,5.38,5.4,5.43,5.45,5.47,5.5,5.52,5.55,5.58,5.6,5.7,5.8,5.9,6.0,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.86,6.92,6.97,7.03,7.09,7.15,7.21,7.27,7.33,7.38,7.44,7.5,7.45,7.4,7.35,7.3,7.25,7.2,7.15,7.1,7.05,7.0,6.95,6.9,6.83,6.77,6.7,6.63,6.57,6.5,6.43,6.37,6.3,6.23,6.17,6.1,6.06,6.02,5.97,5.93,5.89,5.85,5.81,5.77,5.72,5.68,5.64,5.6,5.58,5.57,5.55,5.53,5.52,5.5,5.48,5.47,5.45,5.43,5.42,5.4,5.36,5.32,5.28,5.23,5.19,5.15,5.11,5.07,5.03,4.98,4.94,4.9,4.87,4.83,4.8,4.77,4.73,4.7,4.67,4.63,4.6,4.57,4.53,4.5,4.48,4.45,4.42,4.4,4.37,4.35,4.33,4.3,4.28,4.25,4.22,4.2,4.18,4.17,4.15,4.13,4.12,4.1,4.08,4.07,4.05,4.03,4.02,4.0,4.06,4.12,4.17,4.23,4.29,4.35,4.41,4.47,4.53,4.58,4.64,4.7,4.79,4.88,4.97,5.07,5.16,5.25,5.34,5.43,5.53,5.62,5.71,5.8,5.82,5.83,5.85,5.87,5.88,5.9,5.92,5.93,5.95,5.97,5.98,6.0,5.96,5.92,5.88,5.83,5.79,5.75,5.71,5.67,5.62,5.58,5.54,5.5,5.47,5.43,5.4,5.37,5.33,5.3,5.27,5.23,5.2,5.17,5.13,5.1,5.06,5.02,4.97,4.93,4.89,4.85,4.81,4.77,4.72,4.68,4.64,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.6,4.7,4.8,4.9,5.0,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,6.09,6.38,6.67,6.97,7.26,7.55,7.84,8.13,8.43,8.72,9.01,9.3,9.37,9.45,9.52,9.59,9.66,9.74,9.81,9.88,9.96,9.93,9.77,9.6,9.54,9.48,9.43,9.37,9.31,9.25,9.19,9.13,9.07,9.02,8.96,8.9,8.83,8.77,8.7,8.63,8.57,8.5,8.43,8.37,8.3,8.23,8.17,8.1,8.04,7.98,7.92,7.87,7.81,7.75,7.69,7.63,7.58,7.52,7.46,7.4,7.3,7.2,7.1,7.0,6.9,6.8,6.7,6.6,6.5,6.4,6.3,6.2,6.13,6.05,5.97,5.9,5.82,5.75,5.68,5.6,5.53,5.45,5.37,5.3,5.27,5.23,5.2,5.17,5.13,5.1,5.07,5.03,5.0,4.97,4.93,4.9,4.86,4.82,4.78,4.73,4.69,4.65,4.61,4.57,4.53,4.48,4.44,4.4,4.36,4.32,4.28,4.23,4.19,4.15,4.11,4.07,4.03,3.98,3.94,3.9,3.88,3.87,3.85,3.83,3.82,3.8,3.78,3.77,3.75,3.73,3.72,3.7,3.68,3.66,3.64,3.63,3.61,3.59,3.57,3.55,3.53,3.51,3.5,3.5,6.61,9.72,12.83,14.1,12.6,11.1,9.7,8.3,6.9,6.83,6.77,6.7,6.48,6.27,6.05,5.83,5.62,5.4,5.17,4.93,4.7,4.47,4.23,4.0,3.93,3.87,3.8,3.73,3.67,3.6,3.57,3.53,3.5,3.47,3.43,3.4,3.43,3.47,3.5,3.53,3.57,3.6,3.62,3.63,3.65,3.67,3.68,3.7,3.77,3.83,3.9,3.97,4.03,4.1,4.08,4.07,4.05,4.03,4.02,4.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0]},"gdp":{"name":"Real GDP Growth (YoY)","short":"GDP","unit":"%","color":"#4ade80","fred":"A191RL1Q225SBEA","panel":"rates","data":[2.6,2.58,2.55,2.52,2.5,2.47,2.45,2.43,2.4,2.38,2.35,2.32,2.3,2.62,2.93,3.25,3.57,3.88,4.2,4.52,4.83,5.15,5.47,5.78,6.1,5.96,5.82,5.67,5.53,5.39,5.25,5.11,4.97,4.83,4.68,4.54,4.4,4.52,4.63,4.75,4.87,4.98,5.1,5.22,5.33,5.45,5.57,5.68,5.8,5.86,5.92,5.97,6.03,6.09,6.15,6.21,6.27,6.33,6.38,6.44,6.5,6.51,6.52,6.53,6.53,6.54,6.55,6.56,6.57,6.57,6.58,6.59,6.6,6.26,5.92,5.57,5.23,4.89,4.55,4.21,3.87,3.52,3.18,2.84,2.5,2.69,2.88,3.08,3.27,3.46,3.65,3.84,4.03,4.22,4.42,4.61,4.8,4.66,4.52,4.38,4.23,4.09,3.95,3.81,3.67,3.52,3.38,3.24,3.1,2.86,2.62,2.38,2.13,1.89,1.65,1.41,1.17,0.93,0.68,0.44,0.2,0.46,0.72,0.97,1.23,1.49,1.75,2.01,2.27,2.52,2.78,3.04,3.3,3.47,3.63,3.8,3.97,4.13,4.3,4.47,4.63,4.8,4.97,5.13,5.3,5.32,5.35,5.38,5.4,5.43,5.45,5.47,5.5,5.52,5.55,5.58,5.6,5.09,4.58,4.07,3.57,3.06,2.55,2.04,1.53,1.03,0.52,0.01,-0.5,-0.48,-0.45,-0.42,-0.4,-0.37,-0.35,-0.33,-0.3,-0.28,-0.25,-0.22,-0.2,0.27,0.73,1.2,1.67,2.13,2.6,3.07,3.53,4.0,4.47,4.93,5.4,5.33,5.27,5.2,5.13,5.07,5.0,4.93,4.87,4.8,4.73,4.67,4.6,4.67,4.75,4.82,4.9,4.98,5.05,5.12,5.2,5.28,5.35,5.43,5.5,5.31,5.12,4.92,4.73,4.54,4.35,4.16,3.97,3.78,3.58,3.39,3.2,2.91,2.62,2.33,2.03,1.74,1.45,1.16,0.87,0.58,0.28,-0.01,-0.3,-0.07,0.17,0.4,0.63,0.87,1.1,1.33,1.57,1.8,2.03,2.27,2.5,2.14,1.78,1.43,1.07,0.71,0.35,-0.01,-0.37,-0.72,-1.08,-1.44,-1.8,-1.27,-0.73,-0.2,0.33,0.87,1.4,1.93,2.47,3.0,3.53,4.07,4.6,4.82,5.03,5.25,5.47,5.68,5.9,6.12,6.33,6.55,6.77,6.98,7.2,6.95,6.7,6.45,6.2,5.95,5.7,5.45,5.2,4.95,4.7,4.45,4.2,4.14,4.08,4.03,3.97,3.91,3.85,3.79,3.73,3.67,3.62,3.56,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.56,3.62,3.67,3.73,3.79,3.85,3.91,3.97,4.03,4.08,4.14,4.2,4.16,4.12,4.08,4.03,3.99,3.95,3.91,3.87,3.83,3.78,3.74,3.7,3.55,3.4,3.25,3.1,2.95,2.8,2.65,2.5,2.35,2.2,2.05,1.9,1.73,1.57,1.4,1.23,1.07,0.9,0.73,0.57,0.4,0.23,0.07,-0.1,0.2,0.5,0.8,1.1,1.4,1.7,2.0,2.3,2.6,2.9,3.2,3.5,3.44,3.38,3.33,3.27,3.21,3.15,3.09,3.03,2.97,2.92,2.86,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,3.89,3.78,3.67,3.57,3.46,3.35,3.24,3.13,3.03,2.92,2.81,2.7,2.79,2.88,2.98,3.07,3.16,3.25,3.34,3.43,3.52,3.62,3.71,3.8,3.86,3.92,3.97,4.03,4.09,4.15,4.21,4.27,4.33,4.38,4.44,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.5,4.52,4.53,4.55,4.57,4.58,4.6,4.62,4.63,4.65,4.67,4.68,4.7,4.65,4.6,4.55,4.5,4.45,4.4,4.35,4.3,4.25,4.2,4.15,4.1,3.84,3.58,3.32,3.07,2.81,2.55,2.29,2.03,1.77,1.52,1.26,1.0,1.06,1.12,1.18,1.23,1.29,1.35,1.41,1.47,1.52,1.58,1.64,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,2.98,3.07,3.15,3.23,3.32,3.4,3.48,3.57,3.65,3.73,3.82,3.9,3.87,3.83,3.8,3.77,3.73,3.7,3.67,3.63,3.6,3.57,3.53,3.5,3.45,3.4,3.35,3.3,3.25,3.2,3.15,3.1,3.05,3.0,2.95,2.9,2.83,2.75,2.67,2.6,2.52,2.45,2.38,2.3,2.23,2.15,2.07,2.0,1.83,1.65,1.48,1.3,1.12,0.95,0.78,0.6,0.42,0.25,0.07,-0.1,-0.3,-0.5,-0.7,-0.9,-1.1,-1.3,-1.5,-1.7,-1.9,-2.1,-2.3,-2.5,-2.08,-1.65,-1.23,-0.8,-0.37,0.05,0.47,0.9,1.32,1.75,2.18,2.6,2.52,2.43,2.35,2.27,2.18,2.1,2.02,1.93,1.85,1.77,1.68,1.6,1.65,1.7,1.75,1.8,1.85,1.9,1.95,2.0,2.05,2.1,2.15,2.2,2.17,2.13,2.1,2.07,2.03,2.0,1.97,1.93,1.9,1.87,1.83,1.8,1.86,1.92,1.98,2.03,2.09,2.15,2.21,2.27,2.33,2.38,2.44,2.5,2.53,2.57,2.6,2.63,2.67,2.7,2.73,2.77,2.8,2.83,2.87,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.0,1.9,1.8,1.7,1.76,1.82,1.88,1.93,1.99,2.05,2.11,2.17,2.22,2.28,2.34,2.4,2.45,2.5,2.55,2.6,2.65,2.7,2.75,2.8,2.85,2.9,2.95,3.0,2.94,2.88,2.83,2.77,2.71,2.65,2.59,2.53,2.47,2.42,2.36,2.3,1.88,1.45,1.02,0.6,0.17,-0.25,-0.67,-1.1,-1.52,-1.95,-2.38,-2.8,-4.87,-6.93,-9.0,-7.13,-5.27,-3.4,-1.93,-0.47,1.0,0.5,-0.0,-0.5,-0.17,0.17,0.5,1.97,3.43,4.9,5.03,5.17,5.3,5.43,5.57,5.7,5.05,4.4,3.75,3.1,2.45,1.8,1.8,1.8,1.8,1.8,1.8,1.8,2.02,2.23,2.45,2.67,2.88,3.1,3.07,3.03,3.0,2.97,2.93,2.9,2.88,2.87,2.85,2.83,2.82,2.8,2.73,2.67,2.6,2.53,2.47,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4]},"sp500":{"name":"S&P 500","short":"S&P 500","unit":"pts","color":"#fbbf24","fred":"SP500","panel":"markets","data":[58.0,58.17,58.33,58.5,58.67,58.83,59.0,59.17,59.33,59.5,59.67,59.83,60.0,60.17,60.33,60.5,60.67,60.83,61.0,61.17,61.33,61.5,61.67,61.83,62.0,62.92,63.83,64.75,65.67,66.58,67.5,68.42,69.33,70.25,71.17,72.08,73.0,73.92,74.83,75.75,76.67,77.58,78.5,79.42,80.33,81.25,82.17,83.08,84.0,83.83,83.67,83.5,83.33,83.17,83.0,82.83,82.67,82.5,82.33,82.17,82.0,81.83,81.67,81.5,81.33,81.17,81.0,80.83,80.67,80.5,80.33,80.17,80.0,80.96,81.92,82.88,83.83,84.79,85.75,86.71,87.67,88.62,89.58,90.54,91.5,92.46,93.42,94.38,95.33,96.29,97.25,98.21,99.17,100.12,101.08,102.04,103.0,102.17,101.33,100.5,99.67,98.83,98.0,97.17,96.33,95.5,94.67,93.83,93.0,92.17,91.33,90.5,89.67,88.83,88.0,87.17,86.33,85.5,84.67,83.83,83.0,84.5,86.0,87.5,89.0,90.5,92.0,93.5,95.0,96.5,98.0,99.5,101.0,102.5,104.0,105.5,107.0,108.5,110.0,111.5,113.0,114.5,116.0,117.5,119.0,117.17,115.33,113.5,111.67,109.83,108.0,106.17,104.33,102.5,100.67,98.83,97.0,94.58,92.17,89.75,87.33,84.92,82.5,80.08,77.67,75.25,72.83,70.42,68.0,69.62,71.25,72.88,74.5,76.13,77.75,79.37,81.0,82.62,84.25,85.88,87.5,89.12,90.75,92.38,94.0,95.63,97.25,98.87,100.5,102.12,103.75,105.38,107.0,106.54,106.08,105.62,105.17,104.71,104.25,103.79,103.33,102.88,102.42,101.96,101.5,101.04,100.58,100.12,99.67,99.21,98.75,98.29,97.83,97.38,96.92,96.46,96.0,97.62,99.25,100.88,102.5,104.13,105.75,107.37,109.0,110.62,112.25,113.88,115.5,117.12,118.75,120.38,122.0,123.63,125.25,126.87,128.5,130.12,131.75,133.38,135.0,133.63,132.25,130.88,129.5,128.12,126.75,125.38,124.0,122.62,121.25,119.87,118.5,117.13,115.75,114.38,113.0,111.62,110.25,108.88,107.5,106.12,104.75,103.37,102.0,107.25,112.5,117.75,123.0,128.25,133.5,138.75,144.0,149.25,154.5,159.75,165.0,166.92,168.83,170.75,172.67,174.58,176.5,178.42,180.33,182.25,184.17,186.08,188.0,189.92,191.83,193.75,195.67,197.58,199.5,201.42,203.33,205.25,207.17,209.08,211.0,214.12,217.25,220.38,223.5,226.63,229.75,232.87,236.0,239.12,242.25,245.38,248.5,251.62,254.75,257.88,261.0,264.13,267.25,270.37,273.5,276.62,279.75,282.88,286.0,279.54,273.08,266.62,260.17,253.71,247.25,240.79,234.33,227.87,230.83,247.92,265.0,268.08,271.17,274.25,277.33,280.42,283.5,286.58,289.67,292.75,295.83,298.92,302.0,305.08,308.17,311.25,314.33,317.42,320.5,323.58,326.67,329.75,332.83,335.92,339.0,342.08,345.17,348.25,351.33,354.42,357.5,360.58,363.67,366.75,369.83,372.92,376.0,379.17,382.33,385.5,388.67,391.83,395.0,398.17,401.33,404.5,407.67,410.83,414.0,417.17,420.33,423.5,426.67,429.83,433.0,436.17,439.33,442.5,445.67,448.83,452.0,458.79,465.58,472.38,479.17,485.96,492.75,499.54,506.33,513.12,519.92,526.71,533.5,540.29,547.08,553.88,560.67,567.46,574.25,581.04,587.83,594.62,601.42,608.21,615.0,629.79,644.58,659.38,674.17,688.96,703.75,718.54,733.33,748.12,762.92,777.71,792.5,807.29,822.08,836.88,851.67,866.46,881.25,896.04,910.83,925.62,940.42,955.21,970.0,984.87,999.75,1014.62,1029.5,1044.38,1059.25,1074.12,1089.0,1103.88,1118.75,1133.63,1148.5,1163.37,1178.25,1193.12,1208.0,1222.88,1237.75,1252.62,1267.5,1282.38,1297.25,1312.13,1327.0,1338.83,1350.67,1362.5,1374.33,1386.17,1398.0,1409.83,1421.67,1433.5,1445.33,1457.17,1469.0,1456.58,1444.17,1431.75,1419.33,1406.92,1394.5,1382.08,1369.67,1357.25,1344.83,1332.42,1320.0,1283.25,1246.5,1209.75,1173.0,1136.25,1099.5,1062.75,1026.0,989.25,952.5,915.75,879.0,898.42,917.83,937.25,956.67,976.08,995.5,1014.92,1034.33,1053.75,1073.17,1092.58,1112.0,1117.67,1123.33,1129.0,1134.67,1140.33,1146.0,1151.67,1157.33,1163.0,1168.67,1174.33,1180.0,1185.67,1191.33,1197.0,1202.67,1208.33,1214.0,1219.67,1225.33,1231.0,1236.67,1242.33,1248.0,1257.17,1266.33,1275.5,1284.67,1293.83,1303.0,1312.17,1321.33,1330.5,1339.67,1348.83,1358.0,1367.17,1376.33,1385.5,1394.67,1403.83,1413.0,1422.17,1431.33,1440.5,1449.67,1458.83,1468.0,1447.42,1426.83,1406.25,1385.67,1365.08,1344.5,1323.92,1303.33,1282.75,1262.17,1241.58,1221.0,1175.58,1130.17,1084.75,1039.33,993.92,948.5,903.08,857.67,812.25,766.83,721.42,676.0,700.58,725.17,758.75,798.33,837.92,877.5,917.08,956.67,996.25,1035.83,1075.42,1115.0,1126.92,1138.83,1150.75,1162.67,1174.58,1186.5,1198.42,1210.33,1222.25,1234.17,1246.08,1258.0,1282.58,1307.17,1331.75,1356.33,1380.92,1405.5,1430.08,1454.67,1479.25,1503.83,1528.42,1553.0,1577.58,1602.17,1626.75,1651.33,1675.92,1700.5,1725.08,1749.67,1774.25,1798.83,1823.42,1848.0,1856.79,1865.58,1874.38,1883.17,1891.96,1900.75,1909.54,1918.33,1927.12,1935.92,1944.71,1953.5,1962.29,1971.08,1979.88,1988.67,1997.46,2006.25,2015.04,2023.83,2032.62,2041.42,2050.21,2059.0,2067.96,2076.92,2085.88,2094.83,2103.79,2112.75,2121.71,2130.67,2139.62,2148.58,2157.54,2166.5,2175.46,2184.42,2193.38,2202.33,2211.29,2220.25,2229.21,2238.17,2247.12,2256.08,2265.04,2274.0,2293.42,2312.83,2332.25,2351.67,2371.08,2390.5,2409.92,2429.33,2448.75,2468.17,2487.58,2507.0,2525.89,2544.78,2563.67,2582.56,2601.44,2620.33,2639.22,2658.11,2677.0,2695.89,2693.67,2607.0,2664.78,2722.56,2780.33,2838.11,2895.89,2953.67,3011.44,3069.22,3127.0,3184.78,3235.5,3258.0,2832.58,2407.17,2380.83,2620.56,2860.28,3100.0,3202.33,3304.67,3407.0,3509.33,3611.67,3714.0,3811.41,3908.81,4006.22,4103.63,4201.04,4298.44,4395.85,4493.26,4590.67,4688.07,4724.17,4515.0,4418.13,4321.25,4224.37,4127.5,4030.62,3933.75,3836.88,3740.0,3643.12,3624.83,3724.42,3824.0,3928.33,4032.67,4137.0,4241.33,4345.67,4450.0,4503.33,4556.67,4610.0,4663.33,4716.67,4770.0,4885.0,5000.0,5115.0,5230.0,5345.0,5460.0,5547.71,5635.42,5723.12,5810.83,5891.17,5942.0,5948.37,5954.75,5955.0,5955.0,5955.0,5955.0,5955.0,5955.0,5955.0,5955.0,5955.0]},"mortgage30":{"name":"30-Year Mortgage Rate","short":"30Y Mortgage","unit":"%","color":"#e879f9","fred":"MORTGAGE30US","panel":"housing","data":[5.1,5.11,5.12,5.12,5.13,5.14,5.15,5.16,5.17,5.17,5.18,5.19,5.2,5.21,5.22,5.22,5.23,5.24,5.25,5.26,5.27,5.28,5.28,5.29,5.3,5.31,5.32,5.33,5.33,5.34,5.35,5.36,5.37,5.38,5.38,5.39,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.4,5.44,5.48,5.51,5.55,5.59,5.62,5.66,5.7,5.74,5.77,5.81,5.85,5.89,5.93,5.96,6.0,6.04,6.08,6.11,6.15,6.19,6.22,6.26,6.3,6.34,6.38,6.42,6.47,6.51,6.55,6.59,6.63,6.67,6.72,6.76,6.8,6.88,6.97,7.05,7.13,7.22,7.3,7.38,7.47,7.55,7.63,7.72,7.8,7.86,7.92,7.97,8.03,8.09,8.15,8.21,8.27,8.32,8.38,8.44,8.5,8.42,8.33,8.25,8.17,8.08,8.0,7.92,7.83,7.75,7.67,7.58,7.5,7.49,7.48,7.47,7.47,7.46,7.45,7.44,7.43,7.43,7.42,7.41,7.4,7.44,7.48,7.53,7.57,7.61,7.65,7.69,7.73,7.78,7.82,7.86,7.9,7.98,8.07,8.15,8.23,8.32,8.4,8.48,8.57,8.65,8.73,8.82,8.9,8.91,8.92,8.93,8.93,8.94,8.95,8.96,8.97,8.97,8.98,8.99,9.0,8.99,8.98,8.97,8.97,8.96,8.95,8.94,8.93,8.93,8.92,8.91,8.9,8.89,8.88,8.88,8.87,8.86,8.85,8.84,8.83,8.83,8.82,8.81,8.8,8.87,8.93,9.0,9.07,9.13,9.2,9.27,9.33,9.4,9.47,9.53,9.6,9.7,9.8,9.9,10.0,10.1,10.2,10.3,10.4,10.5,10.6,10.7,10.8,10.96,11.12,11.28,11.43,11.59,11.75,11.91,12.07,12.22,12.38,12.54,12.7,13.02,13.35,13.68,14.0,14.33,14.65,14.97,15.3,15.62,15.95,16.28,16.6,16.79,16.98,17.16,17.35,17.54,17.73,17.91,18.1,18.29,18.0,17.0,16.0,15.77,15.53,15.3,15.07,14.83,14.6,14.37,14.13,13.9,13.67,13.43,13.2,13.26,13.32,13.38,13.43,13.49,13.55,13.61,13.67,13.72,13.78,13.84,13.9,13.78,13.65,13.53,13.4,13.27,13.15,13.03,12.9,12.78,12.65,12.52,12.4,12.22,12.03,11.85,11.67,11.48,11.3,11.12,10.93,10.75,10.57,10.38,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.21,10.22,10.22,10.23,10.24,10.25,10.26,10.27,10.28,10.28,10.29,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.3,10.28,10.27,10.25,10.23,10.22,10.2,10.18,10.17,10.15,10.13,10.12,10.1,10.03,9.97,9.9,9.83,9.77,9.7,9.63,9.57,9.5,9.43,9.37,9.3,9.23,9.15,9.08,9.0,8.92,8.85,8.78,8.7,8.62,8.55,8.47,8.4,8.31,8.22,8.12,8.03,7.94,7.85,7.76,7.67,7.58,7.48,7.39,7.3,7.39,7.48,7.58,7.67,7.76,7.85,7.94,8.03,8.12,8.22,8.31,8.4,8.36,8.32,8.28,8.23,8.19,8.15,8.11,8.07,8.03,7.98,7.94,7.9,7.89,7.88,7.88,7.87,7.86,7.85,7.84,7.83,7.83,7.82,7.81,7.8,7.78,7.77,7.75,7.73,7.72,7.7,7.68,7.67,7.65,7.63,7.62,7.6,7.54,7.48,7.42,7.37,7.31,7.25,7.19,7.13,7.08,7.02,6.96,6.9,6.94,6.98,7.03,7.07,7.11,7.15,7.19,7.23,7.28,7.32,7.36,7.4,7.46,7.52,7.58,7.63,7.69,7.75,7.81,7.87,7.92,7.98,8.04,8.1,8.01,7.92,7.82,7.73,7.64,7.55,7.46,7.37,7.28,7.18,7.09,7.0,6.96,6.92,6.88,6.83,6.79,6.75,6.71,6.67,6.62,6.58,6.54,6.5,6.44,6.38,6.33,6.27,6.21,6.15,6.09,6.03,5.97,5.92,5.86,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.8,5.81,5.82,5.83,5.83,5.84,5.85,5.86,5.87,5.88,5.88,5.89,5.9,5.94,5.98,6.03,6.07,6.11,6.15,6.19,6.23,6.28,6.32,6.36,6.4,6.39,6.38,6.38,6.37,6.36,6.35,6.34,6.33,6.33,6.32,6.31,6.3,6.28,6.25,6.22,6.2,6.17,6.15,6.13,6.1,6.08,6.05,6.02,6.0,5.92,5.83,5.75,5.67,5.58,5.5,5.42,5.33,5.25,5.17,5.08,5.0,4.98,4.95,4.92,4.9,4.87,4.85,4.83,4.8,4.78,4.75,4.72,4.7,4.68,4.67,4.65,4.63,4.62,4.6,4.58,4.57,4.55,4.53,4.52,4.5,4.43,4.37,4.3,4.23,4.17,4.1,4.03,3.97,3.9,3.83,3.77,3.7,3.72,3.73,3.75,3.77,3.78,3.8,3.82,3.83,3.85,3.87,3.88,3.9,3.92,3.95,3.98,4.0,4.03,4.05,4.07,4.1,4.12,4.15,4.18,4.2,4.18,4.15,4.12,4.1,4.07,4.05,4.03,4.0,3.98,3.95,3.92,3.9,3.88,3.87,3.85,3.83,3.82,3.8,3.78,3.77,3.75,3.73,3.72,3.7,3.72,3.75,3.78,3.8,3.83,3.85,3.87,3.9,3.92,3.95,3.98,4.0,4.04,4.08,4.12,4.17,4.21,4.25,4.29,4.33,4.38,4.42,4.46,4.5,4.45,4.4,4.35,4.3,4.25,4.2,4.15,4.1,4.05,4.0,3.95,3.9,3.83,3.77,3.7,3.63,3.57,3.5,3.43,3.37,3.3,3.23,3.17,3.1,3.07,3.03,3.0,2.97,2.93,2.9,2.92,2.93,2.95,2.97,2.98,3.0,3.01,3.02,3.03,3.04,3.05,3.06,3.06,3.07,3.08,3.09,3.17,3.5,3.83,4.17,4.5,4.83,5.17,5.5,5.88,6.26,6.64,7.02,6.83,6.5,6.55,6.6,6.65,6.7,6.75,6.8,7.04,7.28,7.51,7.75,7.27,6.6,6.65,6.7,6.75,6.8,6.85,6.9,6.87,6.83,6.8,6.77,6.73,6.7,6.7,6.7,6.7,6.7,6.7,6.7,6.7,6.7,6.7,6.7,6.7]},"case_shiller":{"name":"Case-Shiller Home Price Index","short":"Case-Shiller","unit":"idx","color":"#fb7185","fred":"CSUSHPINSA","panel":"housing","data":[18.0,18.03,18.06,18.08,18.11,18.14,18.17,18.19,18.22,18.25,18.28,18.31,18.33,18.36,18.39,18.42,18.44,18.47,18.5,18.53,18.56,18.58,18.61,18.64,18.67,18.69,18.72,18.75,18.78,18.81,18.83,18.86,18.89,18.92,18.94,18.97,19.0,19.06,19.11,19.17,19.22,19.28,19.33,19.39,19.44,19.5,19.56,19.61,19.67,19.72,19.78,19.83,19.89,19.94,20.0,20.06,20.11,20.17,20.22,20.28,20.33,20.39,20.44,20.5,20.56,20.61,20.67,20.72,20.78,20.83,20.89,20.94,21.0,21.08,21.17,21.25,21.33,21.42,21.5,21.58,21.67,21.75,21.83,21.92,22.0,22.08,22.17,22.25,22.33,22.42,22.5,22.58,22.67,22.75,22.83,22.92,23.0,23.08,23.17,23.25,23.33,23.42,23.5,23.58,23.67,23.75,23.83,23.92,24.0,24.11,24.22,24.33,24.44,24.56,24.67,24.78,24.89,25.0,25.11,25.22,25.33,25.44,25.56,25.67,25.78,25.89,26.0,26.11,26.22,26.33,26.44,26.56,26.67,26.78,26.89,27.0,27.11,27.22,27.33,27.44,27.56,27.67,27.78,27.89,28.0,28.19,28.39,28.58,28.78,28.97,29.17,29.36,29.56,29.75,29.94,30.14,30.33,30.53,30.72,30.92,31.11,31.31,31.5,31.69,31.89,32.08,32.28,32.47,32.67,32.86,33.06,33.25,33.44,33.64,33.83,34.03,34.22,34.42,34.61,34.81,35.0,35.25,35.5,35.75,36.0,36.25,36.5,36.75,37.0,37.25,37.5,37.75,38.0,38.25,38.5,38.75,39.0,39.25,39.5,39.75,40.0,40.25,40.5,40.75,41.0,41.25,41.5,41.75,42.0,42.25,42.5,42.75,43.0,43.25,43.5,43.75,44.0,44.33,44.67,45.0,45.33,45.67,46.0,46.33,46.67,47.0,47.33,47.67,48.0,48.33,48.67,49.0,49.33,49.67,50.0,50.33,50.67,51.0,51.33,51.67,52.0,52.17,52.33,52.5,52.67,52.83,53.0,53.17,53.33,53.5,53.67,53.83,54.0,54.17,54.33,54.5,54.67,54.83,55.0,55.17,55.33,55.5,55.67,55.83,56.0,56.17,56.33,56.5,56.67,56.83,57.0,57.17,57.33,57.5,57.67,57.83,58.0,58.17,58.33,58.5,58.67,58.83,59.0,59.17,59.33,59.5,59.67,59.83,60.0,60.33,60.67,61.0,61.33,61.67,62.0,62.33,62.67,63.0,63.33,63.67,64.0,64.33,64.67,65.0,65.33,65.67,66.0,66.33,66.67,67.0,67.33,67.67,68.0,68.33,68.67,69.0,69.33,69.67,70.0,70.33,70.67,71.0,71.33,71.67,72.0,72.33,72.67,73.0,73.33,73.67,74.0,74.33,74.67,75.0,75.33,75.67,76.0,76.08,76.17,76.25,76.33,76.42,76.5,76.58,76.67,76.75,76.83,76.92,77.0,77.08,77.17,77.25,77.33,77.42,77.5,77.58,77.67,77.75,77.83,77.92,78.0,77.96,77.92,77.88,77.83,77.79,77.75,77.71,77.67,77.62,77.58,77.54,77.5,77.46,77.42,77.38,77.33,77.29,77.25,77.21,77.17,77.12,77.08,77.04,77.0,77.04,77.08,77.12,77.17,77.21,77.25,77.29,77.33,77.38,77.42,77.46,77.5,77.54,77.58,77.62,77.67,77.71,77.75,77.79,77.83,77.88,77.92,77.96,78.0,78.08,78.17,78.25,78.33,78.42,78.5,78.58,78.67,78.75,78.83,78.92,79.0,79.08,79.17,79.25,79.33,79.42,79.5,79.58,79.67,79.75,79.83,79.92,80.0,80.33,80.67,81.0,81.33,81.67,82.0,82.33,82.67,83.0,83.33,83.67,84.0,84.33,84.67,85.0,85.33,85.67,86.0,86.33,86.67,87.0,87.33,87.67,88.0,88.5,89.0,89.5,90.0,90.5,91.0,91.5,92.0,92.5,93.0,93.5,94.0,94.5,95.0,95.5,96.0,96.5,97.0,97.5,98.0,98.5,99.0,99.5,100.0,100.83,101.67,102.5,103.33,104.17,105.0,105.83,106.67,107.5,108.33,109.17,110.0,110.83,111.67,112.5,113.33,114.17,115.0,115.83,116.67,117.5,118.33,119.17,120.0,121.25,122.5,123.75,125.0,126.25,127.5,128.75,130.0,131.25,132.5,133.75,135.0,136.67,138.33,140.0,141.67,143.33,145.0,146.67,148.33,150.0,151.67,153.33,155.0,157.5,160.0,162.5,165.0,167.5,170.0,172.5,175.0,177.5,180.0,182.5,185.0,186.75,188.5,190.25,192.0,193.75,195.5,197.25,199.0,200.75,202.5,204.25,206.0,206.0,206.0,206.0,206.0,206.0,206.0,205.0,204.0,203.0,202.0,201.0,200.0,197.92,195.83,193.75,191.67,189.58,187.5,185.42,183.33,181.25,179.17,177.08,175.0,172.5,170.0,167.5,165.0,162.5,160.0,157.5,155.0,152.5,150.0,147.5,145.0,144.75,144.5,144.25,144.0,143.75,143.5,143.25,143.0,142.75,142.5,142.25,142.0,141.5,141.0,140.5,140.0,139.5,139.0,138.5,138.0,137.5,137.0,136.5,136.0,136.33,136.67,137.0,137.33,137.67,138.0,138.33,138.67,139.0,139.33,139.67,140.0,141.25,142.5,143.75,145.0,146.25,147.5,148.75,150.0,151.25,152.5,153.75,155.0,156.0,157.0,158.0,159.0,160.0,161.0,162.0,163.0,164.0,165.0,166.0,167.0,167.67,168.33,169.0,169.67,170.33,171.0,171.67,172.33,173.0,173.67,174.33,175.0,175.67,176.33,177.0,177.67,178.33,179.0,179.67,180.33,181.0,181.67,182.33,183.0,184.0,185.0,186.0,187.0,188.0,189.0,190.0,191.0,192.0,193.0,194.0,195.0,196.08,197.17,198.25,199.33,200.42,201.5,202.58,203.67,204.75,205.83,206.92,208.0,208.58,209.17,209.75,210.33,210.92,211.5,212.08,212.67,213.25,213.83,214.42,215.0,215.42,215.83,216.25,216.67,217.08,217.5,217.92,218.33,218.75,219.17,219.58,220.0,221.67,223.33,225.0,226.67,228.33,230.0,233.33,236.67,240.0,243.33,246.67,250.0,254.17,258.33,262.5,266.67,270.83,275.0,280.0,285.0,290.0,295.0,300.0,305.0,305.83,306.67,307.5,308.33,309.17,310.0,308.33,306.67,305.0,303.33,301.67,300.0,301.67,303.33,305.0,306.67,308.33,310.0,311.67,313.33,315.0,316.67,318.33,320.0,321.33,322.67,324.0,325.33,326.67,328.0,328.33,328.67,329.0,329.33,329.67,330.0,330.0,330.0,330.0,330.0,330.0,330.0,330.0,330.0,330.0,330.0,330.0]},"sentiment":{"name":"Consumer Sentiment (UMich)","short":"Sentiment","unit":"idx","color":"#38bdf8","fred":"UMCSENT","panel":"sentiment","data":[87.0,87.12,87.25,87.38,87.5,87.63,87.75,87.87,88.0,88.12,88.25,88.38,88.5,88.62,88.75,88.88,89.0,89.13,89.25,89.37,89.5,89.62,89.75,89.88,90.0,90.21,90.42,90.62,90.83,91.04,91.25,91.46,91.67,91.88,92.08,92.29,92.5,92.71,92.92,93.12,93.33,93.54,93.75,93.96,94.17,94.38,94.58,94.79,95.0,94.71,94.42,94.12,93.83,93.54,93.25,92.96,92.67,92.38,92.08,91.79,91.5,91.21,90.92,90.62,90.33,90.04,89.75,89.46,89.17,88.88,88.58,88.29,88.0,87.92,87.83,87.75,87.67,87.58,87.5,87.42,87.33,87.25,87.17,87.08,87.0,87.08,87.17,87.25,87.33,87.42,87.5,87.58,87.67,87.75,87.83,87.92,88.0,87.67,87.33,87.0,86.67,86.33,86.0,85.67,85.33,85.0,84.67,84.33,84.0,83.0,82.0,81.0,80.0,79.0,78.0,77.0,76.0,75.0,74.0,73.0,72.0,72.5,73.0,73.5,74.0,74.5,75.0,75.5,76.0,76.5,77.0,77.5,78.0,79.42,80.83,82.25,83.67,85.08,86.5,87.92,89.33,90.75,92.17,93.58,95.0,93.92,92.83,91.75,90.67,89.58,88.5,87.42,86.33,85.25,84.17,83.08,82.0,80.5,79.0,77.5,76.0,74.5,73.0,71.5,70.0,68.5,67.0,65.5,64.0,64.67,65.33,66.0,66.67,67.33,68.0,68.67,69.33,70.0,70.67,71.33,72.0,73.25,74.5,75.75,77.0,78.25,79.5,80.75,82.0,83.25,84.5,85.75,87.0,87.08,87.17,87.25,87.33,87.42,87.5,87.58,87.67,87.75,87.83,87.92,88.0,87.67,87.33,87.0,86.67,86.33,86.0,85.67,85.33,85.0,84.67,84.33,84.0,82.58,81.17,79.75,78.33,76.92,75.5,74.08,72.67,71.25,69.83,68.42,67.0,65.75,64.5,63.25,62.0,60.75,59.5,58.25,57.0,55.75,54.5,53.25,52.0,53.08,54.17,55.25,56.33,57.42,58.5,59.58,60.67,61.75,62.83,63.92,65.0,64.75,64.5,64.25,64.0,63.75,63.5,63.25,63.0,62.75,62.5,62.25,62.0,63.33,64.67,66.0,67.33,68.67,70.0,71.33,72.67,74.0,75.33,76.67,78.0,79.5,81.0,82.5,84.0,85.5,87.0,88.5,90.0,91.5,93.0,94.5,96.0,95.92,95.83,95.75,95.67,95.58,95.5,95.42,95.33,95.25,95.17,95.08,95.0,95.17,95.33,95.5,95.67,95.83,96.0,96.17,96.33,96.5,96.67,96.83,97.0,96.75,96.5,96.25,96.0,95.75,95.5,95.25,95.0,94.75,94.5,94.25,94.0,93.67,93.33,93.0,92.67,92.33,92.0,91.67,91.33,91.0,90.67,90.33,90.0,90.08,90.17,90.25,90.33,90.42,90.5,90.58,90.67,90.75,90.83,90.92,91.0,90.25,89.5,88.75,88.0,87.25,86.5,85.75,85.0,84.25,83.5,82.75,82.0,80.83,79.67,78.5,77.33,76.17,75.0,73.83,72.67,71.5,70.33,69.17,68.0,68.5,69.0,69.5,70.0,70.5,71.0,71.5,72.0,72.5,73.0,73.5,74.0,74.33,74.67,75.0,75.33,75.67,76.0,76.33,76.67,77.0,77.33,77.67,78.0,79.08,80.17,81.25,82.33,83.42,84.5,85.58,86.67,87.75,88.83,89.92,91.0,91.42,91.83,92.25,92.67,93.08,93.5,93.92,94.33,94.75,95.17,95.58,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.67,97.33,98.0,98.67,99.33,100.0,100.67,101.33,102.0,102.67,103.33,104.0,104.25,104.5,104.75,105.0,105.25,105.5,105.75,106.0,106.25,106.5,106.75,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.42,107.83,108.25,108.67,109.08,109.5,109.92,110.33,110.75,111.17,111.58,112.0,109.5,107.0,104.5,102.0,99.5,97.0,94.5,92.0,89.5,87.0,84.5,82.0,82.58,83.17,83.75,84.33,84.92,85.5,86.08,86.67,87.25,87.83,88.42,89.0,88.83,88.67,88.5,88.33,88.17,88.0,87.83,87.67,87.5,87.33,87.17,87.0,87.67,88.33,89.0,89.67,90.33,91.0,91.67,92.33,93.0,93.67,94.33,95.0,94.42,93.83,93.25,92.67,92.08,91.5,90.92,90.33,89.75,89.17,88.58,88.0,87.92,87.83,87.75,87.67,87.58,87.5,87.42,87.33,87.25,87.17,87.08,87.0,86.08,85.17,84.25,83.33,82.42,81.5,80.58,79.67,78.75,77.83,76.92,76.0,74.42,72.83,71.25,69.67,68.08,66.5,64.92,63.33,61.75,60.17,58.58,57.0,56.83,56.67,56.5,56.33,56.17,56.0,56.0,56.0,56.0,56.0,56.0,56.0,57.0,58.0,59.0,60.0,61.0,62.0,63.0,64.0,65.0,66.0,67.0,68.0,66.92,65.83,64.75,63.67,62.58,61.5,60.42,59.33,58.25,57.17,56.08,55.0,56.42,57.83,59.25,60.67,62.08,63.5,64.92,66.33,67.75,69.17,70.58,72.0,72.33,72.67,73.0,73.33,73.67,74.0,74.33,74.67,75.0,75.33,75.67,76.0,76.42,76.83,77.25,77.67,78.08,78.5,78.92,79.33,79.75,80.17,80.58,81.0,82.0,83.0,84.0,85.0,86.0,87.0,88.0,89.0,90.0,91.0,92.0,93.0,92.83,92.67,92.5,92.33,92.17,92.0,91.83,91.67,91.5,91.33,91.17,91.0,91.5,92.0,92.5,93.0,93.5,94.0,94.5,95.0,95.5,96.0,96.5,97.0,97.08,97.17,97.25,97.33,97.42,97.5,97.58,97.67,97.75,97.83,97.92,98.0,97.83,97.67,97.5,97.33,97.17,97.0,96.83,96.67,96.5,96.33,96.17,96.0,93.92,91.83,89.75,87.67,85.58,83.5,81.42,79.33,77.25,75.17,73.08,71.0,71.33,71.67,72.0,73.33,74.67,76.0,77.0,78.0,79.0,80.0,81.0,82.0,80.0,78.0,76.0,74.0,72.0,70.0,68.0,66.0,64.0,62.0,60.0,58.0,56.67,55.33,54.0,52.67,51.33,50.0,52.5,55.0,57.5,60.0,62.5,65.0,65.67,66.33,67.0,67.67,68.33,69.0,70.33,71.67,73.0,74.33,75.67,77.0,75.5,74.0,72.5,71.0,69.5,68.0,67.33,66.67,66.0,65.33,64.67,64.0,64.0,64.0,64.0,64.0,64.0,64.0,64.0,64.0,64.0,64.0,64.0]},"pmi":{"name":"ISM Manufacturing PMI","short":"PMI","unit":"idx","color":"#a78bfa","fred":"NAPM","panel":"sentiment","data":[50.0,49.67,49.33,49.0,48.67,48.33,48.0,47.67,47.33,47.0,46.67,46.33,46.0,46.75,47.5,48.25,49.0,49.75,50.5,51.25,52.0,52.75,53.5,54.25,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.17,55.33,55.5,55.67,55.83,56.0,56.17,56.33,56.5,56.67,56.83,57.0,57.25,57.5,57.75,58.0,58.25,58.5,58.75,59.0,59.25,59.5,59.75,60.0,59.58,59.17,58.75,58.33,57.92,57.5,57.08,56.67,56.25,55.83,55.42,55.0,54.5,54.0,53.5,53.0,52.5,52.0,51.5,51.0,50.5,50.0,49.5,49.0,49.5,50.0,50.5,51.0,51.5,52.0,52.5,53.0,53.5,54.0,54.5,55.0,54.83,54.67,54.5,54.33,54.17,54.0,53.83,53.67,53.5,53.33,53.17,53.0,52.25,51.5,50.75,50.0,49.25,48.5,47.75,47.0,46.25,45.5,44.75,44.0,44.67,45.33,46.0,46.67,47.33,48.0,48.67,49.33,50.0,50.67,51.33,52.0,52.33,52.67,53.0,53.33,53.67,54.0,54.33,54.67,55.0,55.33,55.67,56.0,56.33,56.67,57.0,57.33,57.67,58.0,58.33,58.67,59.0,59.33,59.67,60.0,59.0,58.0,57.0,56.0,55.0,54.0,53.0,52.0,51.0,50.0,49.0,48.0,47.5,47.0,46.5,46.0,45.5,45.0,44.5,44.0,43.5,43.0,42.5,42.0,43.08,44.17,45.25,46.33,47.42,48.5,49.58,50.67,51.75,52.83,53.92,55.0,55.08,55.17,55.25,55.33,55.42,55.5,55.58,55.67,55.75,55.83,55.92,56.0,56.0,56.0,56.0,56.0,56.0,56.0,56.0,56.0,56.0,56.0,56.0,56.0,55.67,55.33,55.0,54.67,54.33,54.0,53.67,53.33,53.0,52.67,52.33,52.0,51.0,50.0,49.0,48.0,47.0,46.0,45.0,44.0,43.0,42.0,41.0,40.0,40.83,41.67,42.5,43.33,44.17,45.0,45.83,46.67,47.5,48.33,49.17,50.0,49.08,48.17,47.25,46.33,45.42,44.5,43.58,42.67,41.75,40.83,39.92,39.0,40.42,41.83,43.25,44.67,46.08,47.5,48.92,50.33,51.75,53.17,54.58,56.0,56.17,56.33,56.5,56.67,56.83,57.0,57.17,57.33,57.5,57.67,57.83,58.0,57.33,56.67,56.0,55.33,54.67,54.0,53.33,52.67,52.0,51.33,50.67,50.0,50.08,50.17,50.25,50.33,50.42,50.5,50.58,50.67,50.75,50.83,50.92,51.0,51.33,51.67,52.0,52.33,52.67,53.0,53.33,53.67,54.0,54.33,54.67,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,54.75,54.5,54.25,54.0,53.75,53.5,53.25,53.0,52.75,52.5,52.25,52.0,51.58,51.17,50.75,50.33,49.92,49.5,49.08,48.67,48.25,47.83,47.42,47.0,46.58,46.17,45.75,45.33,44.92,44.5,44.08,43.67,43.25,42.83,42.42,42.0,42.83,43.67,44.5,45.33,46.17,47.0,47.83,48.67,49.5,50.33,51.17,52.0,52.17,52.33,52.5,52.67,52.83,53.0,53.17,53.33,53.5,53.67,53.83,54.0,54.25,54.5,54.75,55.0,55.25,55.5,55.75,56.0,56.25,56.5,56.75,57.0,56.42,55.83,55.25,54.67,54.08,53.5,52.92,52.33,51.75,51.17,50.58,50.0,50.25,50.5,50.75,51.0,51.25,51.5,51.75,52.0,52.25,52.5,52.75,53.0,53.25,53.5,53.75,54.0,54.25,54.5,54.75,55.0,55.25,55.5,55.75,56.0,55.42,54.83,54.25,53.67,53.08,52.5,51.92,51.33,50.75,50.17,49.58,49.0,49.5,50.0,50.5,51.0,51.5,52.0,52.5,53.0,53.5,54.0,54.5,55.0,54.75,54.5,54.25,54.0,53.75,53.5,53.25,53.0,52.75,52.5,52.25,52.0,51.17,50.33,49.5,48.67,47.83,47.0,46.17,45.33,44.5,43.67,42.83,42.0,42.58,43.17,43.75,44.33,44.92,45.5,46.08,46.67,47.25,47.83,48.42,49.0,49.42,49.83,50.25,50.67,51.08,51.5,51.92,52.33,52.75,53.17,53.58,54.0,54.5,55.0,55.5,56.0,56.5,57.0,57.5,58.0,58.5,59.0,59.5,60.0,59.58,59.17,58.75,58.33,57.92,57.5,57.08,56.67,56.25,55.83,55.42,55.0,54.83,54.67,54.5,54.33,54.17,54.0,53.83,53.67,53.5,53.33,53.17,53.0,52.83,52.67,52.5,52.33,52.17,52.0,51.83,51.67,51.5,51.33,51.17,51.0,50.33,49.67,49.0,48.33,47.67,47.0,46.33,45.67,45.0,44.33,43.67,43.0,42.17,41.33,40.5,39.67,38.83,38.0,37.17,36.33,35.5,34.67,33.83,33.0,35.17,37.33,39.5,41.67,43.83,46.0,47.67,49.33,51.0,52.67,54.33,56.0,55.92,55.83,55.75,55.67,55.58,55.5,55.42,55.33,55.25,55.17,55.08,55.0,54.67,54.33,54.0,53.67,53.33,53.0,52.67,52.33,52.0,51.67,51.33,51.0,51.17,51.33,51.5,51.67,51.83,52.0,52.17,52.33,52.5,52.67,52.83,53.0,53.25,53.5,53.75,54.0,54.25,54.5,54.75,55.0,55.25,55.5,55.75,56.0,55.58,55.17,54.75,54.33,53.92,53.5,53.08,52.67,52.25,51.83,51.42,51.0,51.08,51.17,51.25,51.33,51.42,51.5,51.58,51.67,51.75,51.83,51.92,52.0,52.42,52.83,53.25,53.67,54.08,54.5,54.92,55.33,55.75,56.17,56.58,57.0,57.17,57.33,57.5,57.67,57.83,58.0,58.17,58.33,58.5,58.67,58.83,59.0,58.33,57.67,57.0,56.33,55.67,55.0,54.33,53.67,53.0,52.33,51.67,51.0,50.72,50.44,50.17,49.89,49.61,49.33,49.06,48.78,48.5,48.22,46.83,41.0,39.33,37.67,36.0,42.0,48.0,54.0,54.67,55.33,56.0,56.67,57.33,58.0,58.5,59.0,59.5,60.0,60.5,61.0,60.33,59.67,59.0,58.33,57.67,57.0,56.33,55.67,55.0,54.33,53.67,53.0,52.0,51.0,50.0,49.0,48.0,47.0,46.83,46.67,46.5,46.33,46.17,46.0,46.5,47.0,47.5,48.0,48.5,49.0,48.83,48.67,48.5,48.33,48.17,48.0,48.17,48.33,48.5,48.67,48.83,49.0,49.0,49.0,49.0,49.0,49.0,49.0,49.0,49.0,49.0,49.0,49.0]}},"events":[{"y":1963,"m":11,"label":"JFK Assassination","icon":"\u26a1"},{"y":1964,"m":8,"label":"Gulf of Tonkin","icon":"\u2694"},{"y":1968,"m":1,"label":"Tet Offensive","icon":"\ud83d\udca3"},{"y":1971,"m":8,"label":"Nixon Ends Gold Standard","icon":"\ud83d\udd17"},{"y":1973,"m":10,"label":"OPEC Oil Embargo","icon":"\ud83d\udee2"},{"y":1979,"m":1,"label":"Iranian Revolution","icon":"\ud83d\udd25"},{"y":1979,"m":8,"label":"Volcker Takes Fed Chair","icon":"\ud83c\udfdb"},{"y":1980,"m":9,"label":"Iran-Iraq War","icon":"\ud83d\udca3"},{"y":1981,"m":8,"label":"Fed Funds Hits 19.1%","icon":"\ud83d\udcc8"},{"y":1987,"m":10,"label":"Black Monday","icon":"\ud83d\udcc9"},{"y":1990,"m":8,"label":"Iraq Invades Kuwait","icon":"\u2694"},{"y":1991,"m":3,"label":"Gulf War Recession End","icon":"\u2694"},{"y":1995,"m":1,"label":"Greenspan Pivot","icon":"\ud83c\udfdb"},{"y":2000,"m":3,"label":"Dot-Com Peak","icon":"\ud83d\udcbb"},{"y":2001,"m":9,"label":"9/11 Attacks","icon":"\u26a1"},{"y":2003,"m":3,"label":"Iraq War Begins","icon":"\ud83c\udfaf"},{"y":2007,"m":12,"label":"Great Recession Begins","icon":"\ud83d\udcc9"},{"y":2008,"m":9,"label":"Lehman Collapse","icon":"\ud83c\udfda"},{"y":2009,"m":3,"label":"Market Bottom (S&P 676)","icon":"\ud83d\udcc8"},{"y":2011,"m":1,"label":"Arab Spring","icon":"\ud83d\udd25"},{"y":2014,"m":3,"label":"Russia Annexes Crimea","icon":"\ud83d\udee1"},{"y":2014,"m":6,"label":"ISIS Surge / Iraq","icon":"\ud83d\udca3"},{"y":2018,"m":3,"label":"US-China Trade War","icon":"\ud83d\udee1"},{"y":2020,"m":3,"label":"COVID Crash","icon":"\ud83e\udda0"},{"y":2020,"m":4,"label":"Fed Goes to Zero","icon":"\ud83c\udfdb"},{"y":2022,"m":2,"label":"Russia Invades Ukraine","icon":"\u2694"},{"y":2022,"m":3,"label":"Fed Hike Cycle Begins","icon":"\ud83d\udcc8"},{"y":2022,"m":6,"label":"CPI Hits 9.1%","icon":"\ud83d\udd25"},{"y":2023,"m":10,"label":"Israel-Hamas War","icon":"\u2694"},{"y":2024,"m":1,"label":"Houthi Red Sea Attacks","icon":"\ud83c\udfaf"},{"y":2024,"m":9,"label":"Fed Begins Cutting","icon":"\ud83d\udcc9"}],"recessions":[{"s":"1960-04","e":"1961-02","l":"1960-61 Recession"},{"s":"1969-12","e":"1970-11","l":"1969-70 Recession"},{"s":"1973-11","e":"1975-03","l":"Oil Crisis Recession"},{"s":"1980-01","e":"1980-07","l":"1980 Recession"},{"s":"1981-07","e":"1982-11","l":"Volcker Recession"},{"s":"1990-07","e":"1991-03","l":"1990-91 Recession"},{"s":"2001-03","e":"2001-11","l":"Dot-Com Recession"},{"s":"2007-12","e":"2009-06","l":"Great Recession"},{"s":"2020-02","e":"2020-04","l":"COVID Recession"}],"eras":[{"start":1960,"end":1965,"title":"The Kennedy Boom","desc":"Post-war expansion, low inflation, strong GDP. The golden age of American manufacturing.","keys":["gdp","unrate"]},{"start":1966,"end":1972,"title":"Vietnam & Social Upheaval","desc":"War spending pushes inflation up. Nixon imposes wage-price controls and kills the gold standard.","keys":["cpi","fed_funds"]},{"start":1973,"end":1982,"title":"The Great Inflation","desc":"Oil shocks, stagflation, malaise. Volcker's shock therapy pushes Fed Funds to 19% to break inflation's back.","keys":["fed_funds","cpi","unrate"]},{"start":1983,"end":1989,"title":"Morning in America","desc":"Disinflation, deregulation, the S&L boom. Reagan-era expansion with rates slowly normalizing.","keys":["sp500","gs10"]},{"start":1990,"end":1999,"title":"The Long Boom","desc":"Goldilocks economy \u2014 tech revolution, budget surplus, 4% unemployment. S&P goes parabolic.","keys":["sp500","unrate","gdp"]},{"start":2000,"end":2003,"title":"Dot-Com to 9/11","desc":"Tech bubble bursts, 9/11 reshapes the world. Fed slashes rates to 1%. Housing begins its run.","keys":["sp500","fed_funds","case_shiller"]},{"start":2004,"end":2007,"title":"Housing Bubble","desc":"Case-Shiller doubles. Subprime everywhere. 'This time is different.' It wasn't.","keys":["case_shiller","mortgage30","fed_funds"]},{"start":2007,"end":2012,"title":"The Great Recession","desc":"Lehman falls, markets crash 57%, unemployment hits 10%. Zero rates and QE begin.","keys":["sp500","unrate","fed_funds"]},{"start":2013,"end":2019,"title":"The Slow Recovery","desc":"Longest expansion in history. ZIRP becomes normal. S&P triples from the bottom.","keys":["sp500","unrate","fed_funds"]},{"start":2020,"end":2021,"title":"COVID & The Everything Rally","desc":"Fastest crash and fastest recovery ever. Stimulus checks, zero rates, meme stocks, housing goes vertical.","keys":["sp500","unrate","case_shiller","sentiment"]},{"start":2022,"end":2025,"title":"The Inflation Fight","desc":"CPI hits 9.1%. Fed hikes to 5.33%. Mortgage rates double. Markets chop. Sound familiar?","keys":["cpi","fed_funds","mortgage30","sentiment"]}]};
-const KEYS = Object.keys(D.series);
+// ════════════════════════════════════════════════════════
+// FRED API — Live data refresh
+// ════════════════════════════════════════════════════════
+const FRED_API_KEY = localStorage.getItem('fred_api_key') || '';
+const FRED_PROXY = 'https://api.stlouisfed.org/fred/series/observations';
+
+// Financial stress series (added dynamically via API or fallback)
+const STRESS_SERIES = {
+  vix: {name:'CBOE Volatility Index (VIX)',short:'VIX',unit:'idx',color:'#ef4444',fred:'VIXCLS',panel:'stress',data:[]},
+  t10y2y: {name:'10Y-2Y Treasury Spread',short:'Yield Curve',unit:'%',color:'#06b6d4',fred:'T10Y2Y',panel:'stress',data:[]},
+  baa_spread: {name:'BAA Corporate Bond Spread',short:'Credit Spread',unit:'%',color:'#f59e0b',fred:'BAA10Y',panel:'stress',data:[]}
+};
+
+// Add stress series to D if not already present
+Object.entries(STRESS_SERIES).forEach(([k,v]) => {
+  if (!D.series[k]) {
+    // Initialize with null-filled array matching months length
+    D.series[k] = {...v, data: v.data.length ? v.data : new Array(D.months.length).fill(null)};
+  }
+});
+
+let KEYS = Object.keys(D.series);
 const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TOTAL = D.months.length;
 
@@ -759,8 +812,170 @@ const TOTAL = D.months.length;
 const PANELS = {
   main: ['fed_funds','cpi','gs10','unrate','gdp','sp500'],
   housing: ['mortgage30','case_shiller'],
-  sent: ['sentiment','pmi']
+  sent: ['sentiment','pmi'],
+  stress: ['vix','t10y2y','baa_spread']
 };
+
+// ── FRED API fetch engine ──
+async function fetchFREDSeries(seriesKey) {
+  const s = D.series[seriesKey];
+  const apiKey = localStorage.getItem('fred_api_key') || FRED_API_KEY;
+  if (!s || !s.fred || !apiKey) return false;
+  try {
+    const url = `${FRED_PROXY}?series_id=${s.fred}&api_key=${apiKey}&file_type=json&observation_start=1960-01-01&frequency=m`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const json = await resp.json();
+    const obs = json.observations || [];
+    // Build a lookup: "YYYY-MM" -> value
+    const lookup = {};
+    obs.forEach(o => {
+      if (o.value !== '.') lookup[o.date.slice(0, 7)] = parseFloat(o.value);
+    });
+    // Map onto D.months, forward-filling gaps
+    let lastVal = null;
+    D.months.forEach((m, i) => {
+      const key = `${m.year}-${String(m.month).padStart(2, '0')}`;
+      if (lookup[key] != null) { lastVal = lookup[key]; }
+      s.data[i] = lastVal;
+    });
+    return true;
+  } catch (e) {
+    console.warn(`FRED fetch failed for ${seriesKey}:`, e);
+    return false;
+  }
+}
+
+// ── Data freshness tracking ──
+let lastFetchTime = parseInt(localStorage.getItem('fred_last_fetch') || '0');
+let dataChanged = false;
+
+function showToast(msg, color, duration) {
+  let toast = $('fredToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'fredToast';
+    toast.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 18px;border-radius:8px;font:bold 11px "JetBrains Mono",monospace;box-shadow:0 4px 24px rgba(0,0,0,.5);transition:opacity .4s,transform .4s;pointer-events:auto;cursor:pointer;max-width:90vw';
+    toast.addEventListener('click', () => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-20px)'; });
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.background = color || 'var(--s2)';
+  toast.style.color = '#fff';
+  toast.style.border = '1px solid ' + (color || 'var(--border)');
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  if (duration) setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-20px)'; }, duration);
+}
+
+async function refreshAllFromFRED(opts) {
+  const silent = opts && opts.silent;
+  const key = localStorage.getItem('fred_api_key') || FRED_API_KEY;
+  if (!key) return;
+
+  const statusEl = $('fredStatus');
+  if (!silent && statusEl) { statusEl.textContent = 'Fetching…'; statusEl.style.color = 'var(--accent)'; }
+  if (!silent) showToast('Refreshing FRED data…', '#334155', 0);
+
+  let ok = 0, fail = 0, changed = 0;
+  for (const k of KEYS) {
+    // Snapshot last non-null value before fetch
+    const lastIdx = D.series[k].data.findLastIndex(v => v != null);
+    const prevLast = lastIdx >= 0 ? D.series[k].data[lastIdx] : null;
+    const prevLastIdx = lastIdx;
+
+    const success = await fetchFREDSeries(k);
+    if (success) {
+      ok++;
+      // Check if we got newer data
+      const newLastIdx = D.series[k].data.findLastIndex(v => v != null);
+      if (newLastIdx > prevLastIdx || (newLastIdx === prevLastIdx && prevLast !== D.series[k].data[newLastIdx])) {
+        changed++;
+      }
+    } else { fail++; }
+  }
+
+  lastFetchTime = Date.now();
+  localStorage.setItem('fred_last_fetch', lastFetchTime.toString());
+  updateFreshnessIndicator();
+
+  // Rebuild UI after data refresh
+  KEYS = Object.keys(D.series);
+  rebuildAfterDataChange();
+
+  if (!silent && statusEl) {
+    statusEl.textContent = `${ok} updated` + (fail ? `, ${fail} failed` : '');
+    statusEl.style.color = fail ? '#f97316' : '#4ade80';
+    setTimeout(() => { statusEl.textContent = ''; }, 4000);
+  }
+
+  // Notify user about results
+  if (changed > 0) {
+    showToast(`${changed} series updated with new data`, '#166534', 6000);
+  } else if (ok > 0 && !silent) {
+    showToast('All series current — no new data from FRED', '#334155', 4000);
+  } else if (ok > 0 && silent) {
+    // Silent + no changes = don't bother user
+  } else if (fail > 0) {
+    showToast(`${fail} series failed to fetch`, '#991b1b', 5000);
+  }
+}
+
+function updateFreshnessIndicator() {
+  let ind = $('freshnessIndicator');
+  if (!ind) return;
+  if (!lastFetchTime) {
+    ind.textContent = 'No API data';
+    ind.style.color = 'var(--muted)';
+    return;
+  }
+  const ago = Date.now() - lastFetchTime;
+  const mins = Math.floor(ago / 60000);
+  const hrs = Math.floor(ago / 3600000);
+  const days = Math.floor(ago / 86400000);
+  let label;
+  if (mins < 2) label = 'just now';
+  else if (mins < 60) label = mins + 'm ago';
+  else if (hrs < 24) label = hrs + 'h ago';
+  else label = days + 'd ago';
+  ind.textContent = 'FRED: ' + label;
+  ind.style.color = days >= 7 ? '#f97316' : hrs >= 24 ? 'var(--dim)' : '#4ade80';
+}
+
+// Auto-refresh on page load if key is saved
+function autoFetchOnLoad() {
+  const key = localStorage.getItem('fred_api_key');
+  if (!key) return;
+  // Only auto-fetch if last fetch was >1 hour ago (session freshness)
+  const ago = Date.now() - lastFetchTime;
+  if (ago > 3600000) {
+    // Fetch silently — will toast only if new data arrives
+    setTimeout(() => refreshAllFromFRED({ silent: true }), 1500); // slight delay so UI is ready
+  } else {
+    // Data is fresh enough, just show the indicator
+    updateFreshnessIndicator();
+  }
+}
+
+function rebuildAfterDataChange() {
+  // Rebuild pre-cached DOM refs for new keys
+  KEYS.forEach(k => {
+    if (!_valEls[k]) _valEls[k] = document.getElementById('svv-' + k);
+    if (!_chgEls[k]) _chgEls[k] = document.getElementById('svc-' + k);
+    if (!_tvEls[k]) _tvEls[k] = document.getElementById('tv-' + k);
+  });
+  buildTicker();
+  buildStats();
+  buildChips();
+  // Refresh sparkline canvas cache
+  KEYS.forEach(k => {
+    const cv = document.getElementById('sp-' + k);
+    if (cv) { _spCanvases[k] = cv; _spCtxs[k] = cv.getContext('2d'); }
+  });
+  if (whatIfMode) buildWhatIfPanel();
+  _lastSparkIdx = -1;
+  if (typeof markDirty === 'function') markDirty();
+}
 
 // Pre-cached DOM references for updateUI hot path
 const _valEls={},_chgEls={},_tvEls={};
@@ -791,7 +1006,7 @@ let idx = TOTAL - 1;  // current time index
 let playing = false, speed = 1, lastT = 0;
 let hoverIdx = -1;
 let normalize = false, normBase = 0;
-let visible = new Set(['fed_funds','cpi','gs10','unrate','mortgage30','case_shiller','sentiment','pmi']);
+let visible = new Set(['fed_funds','cpi','gs10','unrate','mortgage30','case_shiller','sentiment','pmi','vix','t10y2y','baa_spread']);
 let eraMode = false, eraIdx = 0;
 let selectedEvent = -1, impactMonths = 3;
 let birthdayIdx = -1, birthdayMode = false, bdayPopupOpen = false;
@@ -955,17 +1170,18 @@ const mainWrap=$('mainWrap'), mainTT=$('mainTT');
 const hCanvas=$('housingCanvas'), hCtx=hCanvas.getContext('2d'), hWrap=$('housingWrap');
 const sCanvas=$('sentCanvas'), sCtx=sCanvas.getContext('2d'), sWrap=$('sentWrap');
 const iCanvas=$('investChartCanvas'), iCtx=iCanvas.getContext('2d'), iWrap=$('investChartWrap');
+const stCanvas=$('stressCanvas'), stCtx=stCanvas.getContext('2d'), stWrap=$('stressWrap');
 
 // Canvas sizes
-let mW=0,mH=0,hW=0,hH=0,sW=0,sH=0,iW=0,iH=0;
+let mW=0,mH=0,hW=0,hH=0,sW=0,sH=0,iW=0,iH=0,stW=0,stH=0;
 function resizeAll(){
-  [[mainCanvas,mainWrap,'m'],[hCanvas,hWrap,'h'],[sCanvas,sWrap,'s'],[iCanvas,iWrap,'i']].forEach(([cv,wr,k])=>{
+  [[mainCanvas,mainWrap,'m'],[hCanvas,hWrap,'h'],[sCanvas,sWrap,'s'],[iCanvas,iWrap,'i'],[stCanvas,stWrap,'st']].forEach(([cv,wr,k])=>{
     const r=wr.getBoundingClientRect(), dpr=devicePixelRatio||1;
     const w=r.width, h=r.height;
     cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
     cv.style.width=w+'px'; cv.style.height=h+'px';
     cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
-    if(k==='m'){mW=w;mH=h} else if(k==='h'){hW=w;hH=h} else if(k==='s'){sW=w;sH=h} else{iW=w;iH=h}
+    if(k==='m'){mW=w;mH=h} else if(k==='h'){hW=w;hH=h} else if(k==='s'){sW=w;sH=h} else if(k==='st'){stW=w;stH=h} else{iW=w;iH=h}
   });
   if(typeof markDirty==='function') markDirty();
   // Update cached bounding rects
@@ -975,6 +1191,7 @@ new ResizeObserver(resizeAll).observe(mainWrap);
 new ResizeObserver(resizeAll).observe(hWrap);
 new ResizeObserver(resizeAll).observe(sWrap);
 new ResizeObserver(resizeAll).observe(iWrap);
+new ResizeObserver(resizeAll).observe(stWrap);
 
 // ════════════════════════════════════════════════════════
 // HELPERS
@@ -985,6 +1202,7 @@ function midx(ym){
 }
 function getVal(k, i){
   const v = D.series[k].data[i];
+  if(v == null) return null;
   if(!normalize) return v;
   const base = D.series[k].data[normBase];
   return base !== 0 ? (v / base) * 100 : 0;
@@ -1306,19 +1524,94 @@ function initAlertForm(){
 let whatIfMode=false, whatIfDriver='fed_funds', whatIfTarget=null;
 
 const ELASTICITIES={
-  fed_funds:{gs10:0.6,mortgage30:0.8,cpi:-0.3,unrate:0.2,sp500:-0.15,gdp:-0.25,case_shiller:-0.4,sentiment:-0.2,pmi:-0.15},
-  cpi:{fed_funds:0.5,gs10:0.4,mortgage30:0.35,sentiment:-0.5,sp500:-0.2,gdp:-0.15,unrate:0.1,pmi:-0.1},
-  gs10:{mortgage30:0.9,sp500:-0.1,case_shiller:-0.3,fed_funds:0.3,sentiment:-0.1},
-  unrate:{gdp:-0.4,sentiment:-0.6,sp500:-0.3,fed_funds:-0.3,cpi:-0.15,pmi:-0.5},
-  gdp:{sp500:0.3,unrate:-0.3,sentiment:0.4,pmi:0.5,fed_funds:0.2,cpi:0.15},
-  sp500:{sentiment:0.002,gdp:0.001},
+  fed_funds:{gs10:0.6,mortgage30:0.8,cpi:-0.3,unrate:0.2,sp500:-0.15,gdp:-0.25,case_shiller:-0.4,sentiment:-0.2,pmi:-0.15,vix:0.1,t10y2y:-0.3,baa_spread:0.15},
+  cpi:{fed_funds:0.5,gs10:0.4,mortgage30:0.35,sentiment:-0.5,sp500:-0.2,gdp:-0.15,unrate:0.1,pmi:-0.1,vix:0.15,baa_spread:0.1},
+  gs10:{mortgage30:0.9,sp500:-0.1,case_shiller:-0.3,fed_funds:0.3,sentiment:-0.1,t10y2y:0.6,baa_spread:-0.2},
+  unrate:{gdp:-0.4,sentiment:-0.6,sp500:-0.3,fed_funds:-0.3,cpi:-0.15,pmi:-0.5,vix:0.3,baa_spread:0.25},
+  gdp:{sp500:0.3,unrate:-0.3,sentiment:0.4,pmi:0.5,fed_funds:0.2,cpi:0.15,vix:-0.2,baa_spread:-0.15},
+  sp500:{sentiment:0.002,gdp:0.001,vix:-0.005,baa_spread:-0.001},
   mortgage30:{case_shiller:-0.5,sentiment:-0.15},
   case_shiller:{sentiment:0.003,gdp:0.002},
-  sentiment:{sp500:0.5,gdp:0.01},
-  pmi:{gdp:0.1,sp500:0.3,sentiment:0.3,unrate:-0.1}
+  sentiment:{sp500:0.5,gdp:0.01,vix:-0.3},
+  pmi:{gdp:0.1,sp500:0.3,sentiment:0.3,unrate:-0.1,vix:-0.15},
+  vix:{sp500:-0.008,sentiment:-0.4,baa_spread:0.15,gdp:-0.05,pmi:-0.2},
+  t10y2y:{gdp:0.3,sp500:0.15,unrate:-0.2,sentiment:0.2,pmi:0.25},
+  baa_spread:{sp500:-0.005,gdp:-0.2,sentiment:-0.3,vix:0.4,unrate:0.15}
 };
 
+// ════════════════════════════════════════════════════════
+// PRE-BUILT SCENARIOS
+// ════════════════════════════════════════════════════════
+const SCENARIOS = {
+  // ── Historical Replays ──
+  '2008 Crisis': {
+    type: 'historical', icon: '📉', desc: 'Replay 2008 financial crisis shocks',
+    shocks: {fed_funds: -4.0, sp500: -0.45, unrate: 5.0, vix: 50, baa_spread: 3.5, gdp: -4.0, case_shiller: -0.25, sentiment: -40, pmi: -15}
+  },
+  'Volcker 1980': {
+    type: 'historical', icon: '🏛', desc: 'Replay Volcker-era rate shock',
+    shocks: {fed_funds: 10.0, mortgage30: 6.0, gs10: 4.0, cpi: -5.0, unrate: 3.5, sp500: -0.15, gdp: -3.0}
+  },
+  'COVID Crash': {
+    type: 'historical', icon: '🦠', desc: 'Replay March 2020 pandemic shock',
+    shocks: {fed_funds: -1.5, sp500: -0.34, unrate: 10.0, vix: 55, gdp: -9.0, sentiment: -30, pmi: -10}
+  },
+  'Dot-Com Bust': {
+    type: 'historical', icon: '💻', desc: 'Replay 2000-02 tech bubble burst',
+    shocks: {sp500: -0.49, unrate: 2.0, fed_funds: -4.75, gdp: -1.5, sentiment: -25, pmi: -8}
+  },
+  // ── Policy Scenarios ──
+  'Fed Cuts to 0%': {
+    type: 'policy', icon: '⬇', desc: 'Fed slashes rates to zero',
+    driver: 'fed_funds', target: 0.25
+  },
+  'Stagflation': {
+    type: 'policy', icon: '🔥', desc: 'High inflation + stagnant growth',
+    shocks: {cpi: 4.0, fed_funds: 3.0, gdp: -2.0, unrate: 2.5, sp500: -0.20, sentiment: -25, vix: 15}
+  },
+  'Soft Landing': {
+    type: 'policy', icon: '✈', desc: 'Inflation cools, growth holds, rates ease',
+    shocks: {fed_funds: -2.0, cpi: -2.0, gdp: 0.5, sp500: 0.12, unrate: -0.3, sentiment: 10, mortgage30: -1.5}
+  },
+  'Rate Shock': {
+    type: 'policy', icon: '📈', desc: 'Sudden aggressive rate hikes',
+    driver: 'fed_funds', target: 8.0
+  },
+  'Yield Curve Inversion': {
+    type: 'policy', icon: '↕', desc: 'Deep yield curve inversion signals recession',
+    shocks: {t10y2y: -1.5, sp500: -0.10, gdp: -1.0, unrate: 1.0, sentiment: -15, vix: 10}
+  },
+  'Credit Crunch': {
+    type: 'policy', icon: '💳', desc: 'Corporate bond spreads blow out',
+    shocks: {baa_spread: 4.0, sp500: -0.25, gdp: -2.0, vix: 25, sentiment: -20, unrate: 2.0}
+  }
+};
+
+let activeScenario = null; // name of selected preset scenario, or null
+
 function computeWhatIfScenario(){
+  // If a multi-shock scenario is active, compute all impacts directly
+  if (activeScenario && SCENARIOS[activeScenario] && SCENARIOS[activeScenario].shocks) {
+    const sc = SCENARIOS[activeScenario];
+    const impacts = {};
+    Object.entries(sc.shocks).forEach(([k, shock]) => {
+      if (!D.series[k]) return;
+      const av = D.series[k].data[idx];
+      if (av == null) return;
+      const unit = D.series[k].unit;
+      // For pts/idx series, shock is a fraction (e.g., -0.45 = -45%); for % series, shock is absolute delta
+      let projDelta;
+      if ((unit === 'pts' || unit === 'idx') && Math.abs(shock) < 1) {
+        projDelta = av * shock;
+      } else {
+        projDelta = shock;
+      }
+      impacts[k] = {actual: av, projected: av + projDelta, delta: projDelta,
+        pctChg: av !== 0 ? (projDelta / Math.abs(av)) * 100 : 0};
+    });
+    return {driverDelta: null, impacts, scenarioName: activeScenario};
+  }
+
   if(whatIfTarget==null||!ELASTICITIES[whatIfDriver]) return null;
   const actualVal=D.series[whatIfDriver].data[idx];
   if(actualVal==null) return null;
@@ -1348,7 +1641,46 @@ function buildWhatIfPanel(){
     if(k===whatIfDriver) o.selected=true;
     sel.appendChild(o);
   });
+  buildScenarioPresets();
   updateWhatIfTarget();
+}
+
+function buildScenarioPresets(){
+  const el=$('scenarioPresets');
+  if(!el) return;
+  el.innerHTML='';
+  Object.entries(SCENARIOS).forEach(([name,sc])=>{
+    const btn=document.createElement('button');
+    btn.style.cssText='background:var(--s2);border:1px solid var(--border);color:var(--fg);border-radius:4px;padding:2px 6px;font-size:9px;cursor:pointer;font-family:"JetBrains Mono",monospace;white-space:nowrap';
+    btn.title=sc.desc;
+    btn.textContent=sc.icon+' '+name;
+    if(activeScenario===name) btn.style.borderColor='var(--accent)';
+    btn.addEventListener('click',()=>{ applyScenario(name); });
+    el.appendChild(btn);
+  });
+}
+
+function applyScenario(name){
+  const sc=SCENARIOS[name];
+  if(!sc) return;
+  if(activeScenario===name){
+    // Toggle off
+    activeScenario=null;
+    updateWhatIfPanel();
+    buildScenarioPresets();
+    return;
+  }
+  activeScenario=name;
+  if(sc.driver && sc.target!=null){
+    // Single-driver scenario — set the driver and target
+    whatIfDriver=sc.driver;
+    whatIfTarget=sc.target;
+    $('whatifDriver').value=sc.driver;
+    $('whatifTarget').value=sc.target;
+    $('whatifUnit').textContent=D.series[sc.driver].unit==='%'?'%':D.series[sc.driver].unit;
+  }
+  updateWhatIfPanel();
+  buildScenarioPresets();
 }
 
 function updateWhatIfTarget(){
@@ -1364,10 +1696,15 @@ function updateWhatIfPanel(){
   const scenario=computeWhatIfScenario();
   const deltaEl=$('whatifDelta');
   const resEl=$('whatifResults');
-  if(!scenario){deltaEl.innerHTML='Set a target value above';resEl.innerHTML='';return;}
-  const ds=D.series[whatIfDriver];
-  const sign=scenario.driverDelta>=0?'+':'';
-  deltaEl.innerHTML=`${ds.short}: <span class="wdv">${sign}${scenario.driverDelta.toFixed(2)}${ds.unit==='%'?'%':''}</span> from ${fmtVal(whatIfDriver,ds.data[idx])} → ${fmtVal(whatIfDriver,whatIfTarget)}`;
+  if(!scenario){deltaEl.innerHTML='Set a target value above or pick a preset';resEl.innerHTML='';return;}
+  if(scenario.scenarioName){
+    const sc=SCENARIOS[scenario.scenarioName];
+    deltaEl.innerHTML=`<span style="color:var(--accent)">${sc.icon} ${scenario.scenarioName}</span> — ${sc.desc}`;
+  } else {
+    const ds=D.series[whatIfDriver];
+    const sign=scenario.driverDelta>=0?'+':'';
+    deltaEl.innerHTML=`${ds.short}: <span class="wdv">${sign}${scenario.driverDelta.toFixed(2)}${ds.unit==='%'?'%':''}</span> from ${fmtVal(whatIfDriver,ds.data[idx])} → ${fmtVal(whatIfDriver,whatIfTarget)}`;
+  }
   // Sort: largest absolute impact first
   const sorted=Object.keys(scenario.impacts).sort((a,b)=>Math.abs(scenario.impacts[b].delta)-Math.abs(scenario.impacts[a].delta));
   let html='';
@@ -1875,7 +2212,10 @@ const TIPS={
   mortgage30:'30-year fixed mortgage rate — the typical interest rate for a home loan',
   case_shiller:'Case-Shiller Home Price Index — tracks how much home prices are rising or falling',
   sentiment:'Consumer Sentiment — survey of how optimistic or worried people feel about the economy',
-  pmi:'Purchasing Managers Index — measures business activity; above 50 = growth, below 50 = contraction'
+  pmi:'Purchasing Managers Index — measures business activity; above 50 = growth, below 50 = contraction',
+  vix:'VIX Volatility Index — the "fear gauge" measuring expected S&P 500 volatility over 30 days',
+  t10y2y:'10Y-2Y Treasury Spread — when negative (inverted yield curve), historically signals coming recession',
+  baa_spread:'BAA Corporate Bond Spread over 10Y Treasury — widens during financial stress and credit crunches'
 };
 
 // Ticker
@@ -1897,6 +2237,12 @@ function buildTicker(){
       buildChips();
     });
     tk.appendChild(el);
+  });
+  // Refresh cached DOM refs and sparkline canvases
+  KEYS.forEach(k=>{
+    _tvEls[k]=document.getElementById('tv-'+k);
+    const cv=document.getElementById('sp-'+k);
+    if(cv){_spCanvases[k]=cv;_spCtxs[k]=cv.getContext('2d');}
   });
 }
 
@@ -1936,10 +2282,13 @@ function drawSparklines(){
 
 // Chips per panel
 function buildChips(){
-  const canvasMap={main:mainCanvas,housing:hCanvas,sent:sCanvas};
+  const canvasMap={main:mainCanvas,housing:hCanvas,sent:sCanvas,stress:stCanvas};
+  const barMap={main:'mainChips',housing:'housingChips',sent:'sentChips',stress:'stressChips'};
+  const titleMap={main:'MACRO',housing:'HOUSING',sent:'SENTIMENT',stress:'FIN. STRESS'};
   Object.entries(PANELS).forEach(([panel, keys])=>{
-    const bar = $(panel==='main'?'mainChips':panel==='housing'?'housingChips':'sentChips');
-    const title = panel==='main'?'MACRO':panel==='housing'?'HOUSING':'SENTIMENT';
+    const bar = $(barMap[panel]);
+    if(!bar) return;
+    const title = titleMap[panel] || panel.toUpperCase();
     bar.innerHTML=`<span class="panel-title">${title}</span>`;
     keys.forEach(k=>{
       const s=D.series[k];
@@ -2002,6 +2351,11 @@ function buildStats(){
       <div class="sv-row"><span class="sv-val" style="color:${s.color}" id="svv-${k}">—</span>
       <span class="sv-chg" id="svc-${k}" title="Change from 12 months ago"></span></div>`;
     el.appendChild(d);
+  });
+  // Refresh cached DOM refs (buildStats replaces all elements)
+  KEYS.forEach(k=>{
+    _valEls[k]=document.getElementById('svv-'+k);
+    _chgEls[k]=document.getElementById('svc-'+k);
   });
 }
 
@@ -2208,6 +2562,7 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     ks.forEach(k=>{
       for(let i=scanStart;i<=scanEnd;i++){
         const v=getVal(k,i);
+        if(v==null) continue;
         if(v<mn)mn=v; if(v>mx)mx=v;
       }
     });
@@ -2367,12 +2722,20 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     const yFn=yFor(k);
     const data=s.data;
 
+    // Find first non-null index in draw range
+    let firstValid=-1;
+    for(let i=drawStart;i<=drawEnd;i++){if(getVal(k,i)!=null){firstValid=i;break;}}
+    if(firstValid<0) return; // all null, skip this series
+
     // Area
     cx.beginPath();
-    cx.moveTo(xFor(drawStart),yFn(getVal(k,drawStart)));
-    for(let i=drawStart+1;i<=drawEnd;i++) cx.lineTo(xFor(i),yFn(getVal(k,i)));
+    let moved=false;
+    for(let i=firstValid;i<=drawEnd;i++){
+      const v=getVal(k,i); if(v==null) continue;
+      if(!moved){cx.moveTo(xFor(i),yFn(v));moved=true;} else cx.lineTo(xFor(i),yFn(v));
+    }
     cx.lineTo(xFor(drawEnd),P.t+ph);
-    cx.lineTo(xFor(drawStart),P.t+ph);
+    cx.lineTo(xFor(firstValid),P.t+ph);
     cx.closePath();
     const ag=cx.createLinearGradient(0,P.t,0,P.t+ph);
     ag.addColorStop(0,s.color+'12');
@@ -2382,8 +2745,11 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
 
     // Line
     cx.beginPath();
-    cx.moveTo(xFor(drawStart),yFn(getVal(k,drawStart)));
-    for(let i=drawStart+1;i<=drawEnd;i++) cx.lineTo(xFor(i),yFn(getVal(k,i)));
+    moved=false;
+    for(let i=firstValid;i<=drawEnd;i++){
+      const v=getVal(k,i); if(v==null) continue;
+      if(!moved){cx.moveTo(xFor(i),yFn(v));moved=true;} else cx.lineTo(xFor(i),yFn(v));
+    }
     cx.strokeStyle=s.color;
     cx.lineWidth=k==='sp500'?1.5:1.8;
     cx.globalAlpha=0.85;
@@ -2391,7 +2757,9 @@ function drawPanel(cx, w, h, keys, showRecessions, showEvents){
     cx.globalAlpha=1;
 
     // End dot with glow
-    const ex=xFor(idx), ey=yFn(getVal(k,idx));
+    const endVal=getVal(k,idx);
+    if(endVal==null) return;
+    const ex=xFor(idx), ey=yFn(endVal);
     cx.save();
     cx.shadowColor=s.color;
     cx.shadowBlur=8;
@@ -2675,19 +3043,20 @@ function updateUI(){
   KEYS.forEach(k=>{
     const v=getVal(k,idx);
     const el=_valEls[k];
-    if(el) el.textContent=fmtVal(k,v);
+    if(el) el.textContent=v!=null?fmtVal(k,v):'—';
     // Change from 12 months ago
     const prev=idx>=12?getVal(k,idx-12):null;
     const chg=_chgEls[k];
-    if(chg&&prev!==null){
+    if(chg&&prev!=null&&v!=null){
       const diff=v-prev;
       const sign=diff>=0?'+':'';
       chg.textContent=sign+diff.toFixed(1);
       chg.className='sv-chg '+(diff>=0?'up':'down');
-    }
+    } else if(chg){ chg.textContent=''; }
     // Ticker
     const tv=_tvEls[k];
-    if(tv) tv.textContent=fmtVal(k,D.series[k].data[idx]);
+    const rawV=D.series[k].data[idx];
+    if(tv) tv.textContent=rawV!=null?fmtVal(k,rawV):'—';
   });
 
   // Events
@@ -2901,6 +3270,7 @@ function mainLoop(ts){
   drawPanel(mainCtx,mW,mH,PANELS.main,true,true);
   drawPanel(hCtx,hW,hH,PANELS.housing,true,selectedEvent>=0);
   drawPanel(sCtx,sW,sH,PANELS.sent,true,selectedEvent>=0);
+  drawPanel(stCtx,stW,stH,PANELS.stress,true,selectedEvent>=0);
   if(investMode) drawInvestChart(iCtx,iW,iH);
   requestAnimationFrame(mainLoop);
 }
@@ -3002,10 +3372,48 @@ $('alertToggle').addEventListener('click',()=>{
   $('alertToggle').textContent=shown?'\u25B6':'\u25BC';
 });
 
+// FRED API Panel
+let fredApiOpen=false;
+const fredApiBtn=$('fredApiBtn');
+function toggleFredApiPanel(){
+  fredApiOpen=!fredApiOpen;
+  fredApiBtn.classList.toggle('active',fredApiOpen);
+  $('fredApiSection').style.display=fredApiOpen?'':'none';
+  if(fredApiOpen){
+    const inp=$('fredApiKeyInput');
+    const key=localStorage.getItem('fred_api_key');
+    if(key) inp.value=key;
+  }
+}
+fredApiBtn.addEventListener('click',toggleFredApiPanel);
+$('freshnessIndicator').addEventListener('click',()=>{ if(!fredApiOpen) toggleFredApiPanel(); });
+$('fredApiToggle').addEventListener('click',()=>{
+  const body=$('fredApiBody');
+  const shown=body.style.display!=='none';
+  body.style.display=shown?'none':'';
+  $('fredApiToggle').textContent=shown?'\u25B6':'\u25BC';
+});
+$('fredApiSaveBtn').addEventListener('click',()=>{
+  const key=$('fredApiKeyInput').value.trim();
+  if(key){
+    localStorage.setItem('fred_api_key',key);
+    $('fredStatus').textContent='Key saved';
+    $('fredStatus').style.color='#4ade80';
+    setTimeout(()=>{$('fredStatus').textContent='';},2000);
+  }
+});
+$('fredRefreshBtn').addEventListener('click',()=>{
+  const key=$('fredApiKeyInput').value.trim()||localStorage.getItem('fred_api_key');
+  if(!key){$('fredStatus').textContent='Enter API key first';$('fredStatus').style.color='#f97316';return;}
+  localStorage.setItem('fred_api_key',key);
+  refreshAllFromFRED({ silent: false });
+});
+
 // What-If Scenario
 const whatifBtn=$('whatifBtn');
 whatifBtn.addEventListener('click',()=>{
   whatIfMode=!whatIfMode;
+  activeScenario=null;
   whatifBtn.classList.toggle('active',whatIfMode);
   $('whatifSection').style.display=whatIfMode?'':'none';
   if(whatIfMode){buildWhatIfPanel();updateWhatIfPanel();}
@@ -3019,12 +3427,16 @@ $('whatifToggle').addEventListener('click',()=>{
 });
 $('whatifDriver').addEventListener('change',e=>{
   whatIfDriver=e.target.value;
+  activeScenario=null;
+  buildScenarioPresets();
   updateWhatIfTarget();
   updateWhatIfPanel();
 });
 $('whatifTarget').addEventListener('input',e=>{
   const v=parseFloat(e.target.value);
   if(!isNaN(v)) whatIfTarget=v;
+  activeScenario=null;
+  buildScenarioPresets();
   updateWhatIfPanel();
 });
 
@@ -3309,6 +3721,39 @@ try{
   if(sv==='zoom'||sv==='magnify') setViewMode(sv);
 }catch(e){}
 window.addEventListener('resize',()=>{updateTogglePositions();});
+updateFreshnessIndicator();
+autoFetchOnLoad();
+
+// ── Global tooltip system ──
+(function(){
+  const tip=$('globalTip');
+  let showTimer=null;
+  document.addEventListener('mouseover',e=>{
+    const el=e.target.closest('[data-tip]');
+    if(!el||document.body.classList.contains('magnify')){tip.classList.remove('show');return;}
+    clearTimeout(showTimer);
+    showTimer=setTimeout(()=>{
+      tip.textContent=el.getAttribute('data-tip');
+      const r=el.getBoundingClientRect();
+      // Position above the element, centered
+      tip.style.left='0';tip.style.top='0';tip.classList.add('show');
+      const tw=tip.offsetWidth, th=tip.offsetHeight;
+      let x=r.left+r.width/2-tw/2;
+      let y=r.top-th-8;
+      // Clamp to viewport
+      if(x<8) x=8;
+      if(x+tw>window.innerWidth-8) x=window.innerWidth-tw-8;
+      if(y<8){y=r.bottom+8;} // flip below if no room above
+      tip.style.left=x+'px';
+      tip.style.top=y+'px';
+    },350);
+  });
+  document.addEventListener('mouseout',e=>{
+    const el=e.target.closest('[data-tip]');
+    if(el){clearTimeout(showTimer);tip.classList.remove('show');}
+  });
+})();
+
 requestAnimationFrame(mainLoop);
 </script>
 </body>
