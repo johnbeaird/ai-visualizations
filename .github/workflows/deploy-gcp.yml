@@ -1,9 +1,7 @@
 name: Deploy to GCS
 
 on:
-  push:
-    branches: [master]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual only until WIF secrets are configured
 
 concurrency:
   group: gcs-deploy
