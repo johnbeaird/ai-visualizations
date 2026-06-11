@@ -1,4 +1,4 @@
-# ai-visualizations aka FREDtrml
+# DEPERCATED - NOW FREDtrml (formerly: ai-visualizations aka FREDtrml)
 
 A small gallery of single-file HTML data visualizations and dashboards. The default landing page (`index.html`) redirects to the FRED Economic Terminal.
 
